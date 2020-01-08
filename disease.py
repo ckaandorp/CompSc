@@ -28,10 +28,10 @@ class DiseaseAgent(Agent):
 		super().__init__(unique_id, model)
 		# Randomly set agent as healthy or sick
 		self.disease = self.random.randrange(2)
-		print(self.disease)
+		self.diseaserate = 0.7
 
 	def move(self):
-	""" Moves agent one step on the grid."""
+		""" Moves agent one step on the grid."""
 		possible_steps = self.model.grid.get_neighborhood(
 			self.pos,
 			moore=False,
@@ -42,16 +42,18 @@ class DiseaseAgent(Agent):
 
 
 	def spread_disease(self):
-	"""Spreads disease to neighbors."""
-		cellmates = self.model.grid.get_neighbors(self.pos,moore=False)
+		"""Spreads disease to neighbors."""
+		cellmates = self.model.grid.get_neighbors(self.pos,moore=True)
 		if len(cellmates) > 1:
-			other = self.random.choice(cellmates)
-			other.disease = 1
+			for i in range(len(cellmates)):
+				other = cellmates[i]
+				if self.diseaserate > self.random.random():
+					other.disease = 1
 	def cured(self):
 		if 0.4 > self.random.random():
 			self.disease = 0
 	def step(self):
-	"""Move and spread disease if sick."""
+		"""Move and spread disease if sick."""
 		self.move()
 		if self.disease == 1:
 			self.spread_disease()
@@ -68,7 +70,6 @@ agent_counts = np.zeros((model.grid.width, model.grid.height))
 for cell in model.grid.coord_iter():
 	agent, x, y = cell
 	if agent != None:
-		print(agent.disease)
 		agent_counts[x][y] = agent.disease
 	else:
 		agent_counts[x][y] = -1
