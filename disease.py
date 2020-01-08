@@ -18,8 +18,7 @@ class DiseaseModel(Model):
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
 
-
-
+	# Continue one step in simulation
 	def step(self):
 		self.schedule.step()
 
@@ -27,10 +26,12 @@ class DiseaseAgent(Agent):
 	""" An agent with fixed initial wealth."""
 	def __init__(self, unique_id, model):
 		super().__init__(unique_id, model)
+		# Randomly set agent as healthy or sick
 		self.disease = self.random.randrange(2)
 		print(self.disease)
 
 	def move(self):
+	""" Moves agent one step on the grid."""
 		possible_steps = self.model.grid.get_neighborhood(
 			self.pos,
 			moore=False,
@@ -41,6 +42,7 @@ class DiseaseAgent(Agent):
 
 
 	def spread_disease(self):
+	"""Spreads disease to neighbors."""
 		cellmates = self.model.grid.get_neighbors(self.pos,moore=False)
 		if len(cellmates) > 1:
 			other = self.random.choice(cellmates)
@@ -49,6 +51,7 @@ class DiseaseAgent(Agent):
 		if 0.4 > self.random.random():
 			self.disease = 0
 	def step(self):
+	"""Move and spread disease if sick."""
 		self.move()
 		if self.disease == 1:
 			self.spread_disease()
