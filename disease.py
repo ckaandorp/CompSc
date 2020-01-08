@@ -1,5 +1,5 @@
 from mesa import Agent, Model
-from mesa.time import SimultaneousActivation
+from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,20 +9,21 @@ class DiseaseModel(Model):
 	def __init__(self, N, width, height):
 		self.num_agents = N
 		self.grid = SingleGrid(width, height, True)
-		self.schedule = SimultaneousActivation(self)
+		self.schedule = RandomActivation(self)
 		# Create agents
 		for i in range(self.num_agents):
-			a = MoneyAgent(i, self)
+			a = DiseaseAgent(i, self)
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
-			x = self.random.randrange(self.grid.width)
-			y = self.random.randrange(self.grid.height)
-			self.grid.place_agent(a, (x, y))
+			location = self.grid.find_empty()
+			self.grid.place_agent(a, location)
+
+
 
 	def step(self):
 		self.schedule.step()
 
-class MoneyAgent(Agent):
+class DiseaseAgent(Agent):
 	""" An agent with fixed initial wealth."""
 	def __init__(self, unique_id, model):
 		super().__init__(unique_id, model)
@@ -34,14 +35,13 @@ class MoneyAgent(Agent):
 			self.pos,
 			moore=False,
 			include_center=True)
-		new_position = self.random.choice(possible_steps)
-		self.model.grid.move_agent(self, new_position)
+		choice = self.random.choice(possible_steps)
+		if model.grid.is_cell_empty(choice):
+			self.model.grid.move_agent(self, choice)
+
 
 	def spread_disease(self):
-		cellmates = self.model.grid.get_cell_list_contents([self.model.grid.get_neighborhood(
-			self.pos,
-			moore=False,
-			include_center=True)])
+		cellmates = self.model.grid.get_neighbors(self.pos,moore=False)
 		if len(cellmates) > 1:
 			other = self.random.choice(cellmates)
 			other.disease = 1
@@ -54,15 +54,18 @@ class MoneyAgent(Agent):
 
 
 model = DiseaseModel(50, 10, 10)
-for i in range(20):
+for i in range(1):
 	model.step()
 
 
 agent_counts = np.zeros((model.grid.width, model.grid.height))
 for cell in model.grid.coord_iter():
-	cell_content, x, y = cell
-	agent_count = len(cell_content)
-	agent_counts[x][y] = agent_count
+	agent, x, y = cell
+	if agent != None:
+		print(agent.disease)
+		agent_counts[x][y] = agent.disease
+	else:
+		agent_counts[x][y] = -1
 plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
 plt.show()
