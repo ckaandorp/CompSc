@@ -1,7 +1,6 @@
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import SingleGrid
-from mesa.datacollection import DataCollector
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -30,24 +29,22 @@ class DiseaseModel(Model):
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
 		for i in range(middleS):
-			a = DiseaseAgent(i, 1, self)
+			a = DiseaseAgent(i+middleS, 1, self)
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
 		for i in range(highS):
-			a = DiseaseAgent(i, 2, self)
+			a = DiseaseAgent(i+middleS+highS, 2, self)
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
-		self.datacollector = DataCollector(
-			model_reporters={"Gini": "grid"},
-			agent_reporters={"Disease": "disease"})
+
 	# Continue one step in simulation
 	def step(self):
 		self.schedule.step()
-		self.datacollector.collect(self)
+
 class DiseaseAgent(Agent):
 	""" An agent with fixed initial disease."""
 	def __init__(self, unique_id, sociability, model):
@@ -97,12 +94,9 @@ model = DiseaseModel(10, 10, 10, 10, 10)
 for i in range(200):
 	model.step()
 
-test = model.datacollector.get_model_vars_dataframe()
-grid = test['Gini'][199]
-print(grid)
 
 agent_counts = np.zeros((model.grid.width, model.grid.height))
-for cell in grid.coord_iter():
+for cell in model.grid.coord_iter():
 	agent, x, y = cell
 	if agent != None:
 		agent_counts[x][y] = agent.disease
