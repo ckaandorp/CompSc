@@ -4,15 +4,38 @@ from mesa.space import SingleGrid
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class DiseaseModel(Model):
-	"""A model with some number of agents."""
-	def __init__(self, N, width, height):
-		self.num_agents = N
+	"""
+	A model with some number of agents.
+	highS: Number of agents with high sociability.
+	middleS: Number of agents with middle sociability.
+	lowS: Number of agents with low sociability.
+	width: Width of the grid.
+	height: Height of the grid.
+	"""
+	def __init__(self, highS, middleS, lowS, width, height):
+		self.num_agents = highS + middleS + lowS
+		if self.num_agents > width * height:
+			raise ValueError("Number of agents exceeds grid capacity.")
+
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
 		# Create agents
-		for i in range(self.num_agents):
-			a = DiseaseAgent(i, self)
+		for i in range(lowS):
+			a = DiseaseAgent(i, 0, self)
+			self.schedule.add(a)
+			# Add the agent to a random grid cell
+			location = self.grid.find_empty()
+			self.grid.place_agent(a, location)
+		for i in range(middleS):
+			a = DiseaseAgent(i, 1, self)
+			self.schedule.add(a)
+			# Add the agent to a random grid cell
+			location = self.grid.find_empty()
+			self.grid.place_agent(a, location)
+		for i in range(highS):
+			a = DiseaseAgent(i, 2, self)
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
@@ -24,11 +47,13 @@ class DiseaseModel(Model):
 
 class DiseaseAgent(Agent):
 	""" An agent with fixed initial wealth."""
-	def __init__(self, unique_id, model):
+	def __init__(self, unique_id, sociability, model):
 		super().__init__(unique_id, model)
 		# Randomly set agent as healthy or sick
 		self.disease = self.random.randrange(2)
 		self.diseaserate = 0.7
+		self.sociability = sociability
+		print(self.disease)
 
 	def move(self):
 		""" Moves agent one step on the grid."""
@@ -61,8 +86,8 @@ class DiseaseAgent(Agent):
 
 
 
-model = DiseaseModel(50, 10, 10)
-for i in range(20):
+model = DiseaseModel(10, 10, 10, 10, 10)
+for i in range(1):
 	model.step()
 
 
