@@ -45,16 +45,19 @@ class DiseaseAgent(Agent):
 		if len(cellmates) > 1:
 			other = self.random.choice(cellmates)
 			other.disease = 1
-
+	def cured(self):
+		if 0.4 > self.random.random():
+			self.disease = 0
 	def step(self):
 		self.move()
 		if self.disease == 1:
 			self.spread_disease()
+			self.cured()
 
 
 
 model = DiseaseModel(50, 10, 10)
-for i in range(1):
+for i in range(20):
 	model.step()
 
 
