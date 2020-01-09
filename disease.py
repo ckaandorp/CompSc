@@ -48,6 +48,8 @@ class DiseaseAgent(Agent):
 		self.diseaserate = 0.7
 		self.sociability = sociability
 		self.resistent = 0
+		self.cureProb = 0.1
+		self.sickTime = 0
 
 	def move(self):
 		""" Moves agent one step on the grid."""
@@ -59,26 +61,34 @@ class DiseaseAgent(Agent):
 		if model.grid.is_cell_empty(choice):
 			self.model.grid.move_agent(self, choice)
 
-
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
 		cellmates = self.model.grid.get_neighbors(self.pos,moore=True)
-		if len(cellmates) > 1:
+		if len(cellmates) > 0: 
 			for i in range(len(cellmates)):
 				other = cellmates[i]
 				if other.resistent == 0:
 					if self.diseaserate > self.random.random():
 						other.disease = 1
+                        
 	def cured(self):
-		if 1 > self.random.random():
-			self.disease = 0
-			self.resistent = 1
-			print(self.resistent)
+		"""Cure agents based on cure probability sick time."""
+		if self.sickTime > 6:
+			if self.cureProb > self.random.random(): 
+				self.disease = 0
+				self.resistent = 1
+				self.sickTime = 0
+				self.cureProb = 0.1
+				print(self.resistent)
+			else:
+				self.cureProb *= 2
+                
 	def step(self):
 		"""Move and spread disease if sick."""
 		self.move()
 		print(self.disease)
 		if self.disease == 1:
+			self.sickTime += 1
 			self.spread_disease()
 			self.cured()
 
