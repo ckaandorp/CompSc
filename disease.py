@@ -21,21 +21,15 @@ class DiseaseModel(Model):
 
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
+
 		# Create agents
-		for i in range(lowS):
-			a = DiseaseAgent(i, 0, self)
-			self.schedule.add(a)
-			# Add the agent to a random grid cell
-			location = self.grid.find_empty()
-			self.grid.place_agent(a, location)
-		for i in range(middleS):
-			a = DiseaseAgent(i+middleS, 1, self)
-			self.schedule.add(a)
-			# Add the agent to a random grid cell
-			location = self.grid.find_empty()
-			self.grid.place_agent(a, location)
-		for i in range(highS):
-			a = DiseaseAgent(i+middleS+highS, 2, self)
+		self.addAgent(lowS, 0, 0)
+		self.addAgent(middleS, lowS, 1)
+		self.addAgent(highS, lowS + highS, 2)
+
+	def addAgent(self, n, startID, sociability):
+		for i in range(n):
+			a = DiseaseAgent(i + startID, sociability, self)
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
