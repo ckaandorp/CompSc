@@ -45,9 +45,9 @@ class DiseaseAgent(Agent):
 		super().__init__(unique_id, model)
 		# Randomly set agent as healthy or sick
 		self.disease = self.random.randrange(2)
-		self.diseaserate = 0.7
+		self.diseaserate = 1
 		self.sociability = sociability
-		self.resistent = 0
+		self.resistent = []
 
 	def move(self):
 		""" Moves agent one step on the grid."""
@@ -66,19 +66,24 @@ class DiseaseAgent(Agent):
 		if len(cellmates) > 1:
 			for i in range(len(cellmates)):
 				other = cellmates[i]
-				if other.resistent == 0:
+				if self.disease not in other.resistent:
 					if self.diseaserate > self.random.random():
-						other.disease = 1
+						other.disease = self.disease
+	def mutate(self):
+		"""mutates disease in an agent."""
+		if self.disease > 0:
+			if 0.0403 > self.random.random():
+				self.disease += 1
 	def cured(self):
-		if 1 > self.random.random():
+		if 0.2 > self.random.random():
+			self.resistent += [self.disease]
 			self.disease = 0
-			self.resistent = 1
-			print(self.resistent)
 	def step(self):
 		"""Move and spread disease if sick."""
 		self.move()
 		print(self.disease)
-		if self.disease == 1:
+		if self.disease >= 1:
+			self.mutate()
 			self.spread_disease()
 			self.cured()
 
@@ -103,7 +108,7 @@ plt.show()
 for cell in model.grid.coord_iter():
 	agent, x, y = cell
 	if agent != None:
-		agent_counts[x][y] = agent.resistent
+		agent_counts[x][y] = agent.resistent[-1]
 	else:
 		agent_counts[x][y] = -1
 plt.imshow(agent_counts, interpolation='nearest')
