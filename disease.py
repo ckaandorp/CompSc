@@ -53,21 +53,27 @@ class DiseaseAgent(Agent):
 
 	def move(self):
 		""" Moves agent one step on the grid."""
-		cellmates = self.model.grid.get_neighbors(self.pos,moore=True)
-		if self.sociability == 0:
+		move = True
+		cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
+		# if self.sociability == 0:
 
 		if self.sociability == 1:
-
+			if len(cellmates) > 0:
+				for neighbor in cellmates:
+					if neighbor.sociability == 2:
+						move = False
+						break
 		if self.sociability == 2:
-
-			
-		possible_steps = self.model.grid.get_neighborhood(
-			self.pos,
-			moore=False,
-			include_center=True)
-		choice = self.random.choice(possible_steps)
-		if model.grid.is_cell_empty(choice):
-			self.model.grid.move_agent(self, choice)
+			if len(cellmates) > 0:
+				move = False
+		if move:
+			possible_steps = self.model.grid.get_neighborhood(
+				self.pos,
+				moore=False,
+				include_center=True)
+			choice = self.random.choice(possible_steps)
+			if model.grid.is_cell_empty(choice):
+				self.model.grid.move_agent(self, choice)
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
