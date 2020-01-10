@@ -54,19 +54,19 @@ class DiseaseAgent(Agent):
 
 	def move(self):
 		""" Moves agent one step on the grid."""
-		cellmates = self.model.grid.get_neighbors(self.pos,moore=True)
+		cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
 		if self.sociability == 0:
 			if len(cellmates) > 0:
 				other = self.random.choice(cellmates)
-				test = ((self.pos[0] - other.pos[0]),(self.pos[1] - other.pos[1]))
-				choice = (test[0]+self.pos[0],test[1]+self.pos[1])
-				if self.model.grid.width > choice[0] > 0  and self.model.grid.height > choice[1] > 0:
+				escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
+				choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
+				if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
 					if model.grid.is_cell_empty(choice):
 						self.model.grid.move_agent(self, choice)
 						return
 		if self.sociability == 1:
-			for neighbour in cellmates:
-				if neighbour.sociability == 2:
+			for neighbor in cellmates:
+				if neighbor.sociability == 2:
 					return
 		if self.sociability == 2:
 			if len(cellmates) > 0:
