@@ -4,7 +4,6 @@ from mesa.space import SingleGrid
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 class DiseaseModel(Model):
 	"""
 	A model with some number of agents.
@@ -14,8 +13,9 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height):
+	def __init__(self, highS, middleS, lowS, width, height,rooms):
 		self.num_agents = highS + middleS + lowS
+		self.rooms = rooms
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
 
@@ -23,11 +23,11 @@ class DiseaseModel(Model):
 		self.schedule = RandomActivation(self)
 
 		# Create agents
-		self.addAgent(lowS, 0, 0)
-		self.addAgent(middleS, lowS, 1)
-		self.addAgent(highS, lowS + highS, 2)
+		self.addAgents(lowS, 0, 0)
+		self.addAgents(middleS, lowS, 1)
+		self.addAgents(highS, lowS + highS, 2)
 
-	def addAgent(self, n, startID, sociability):
+	def addAgents(self, n, startID, sociability):
 		for i in range(n):
 			a = DiseaseAgent(i + startID, sociability, self)
 			self.schedule.add(a)
@@ -50,6 +50,7 @@ class DiseaseAgent(Agent):
 		self.resistent = []
 		self.cureProb = 0.1
 		self.sickTime = 0
+		self.goal = self.model.rooms[self.random.randrange(len(self.model.rooms))]
 
 	def move(self):
 		""" Moves agent one step on the grid."""
@@ -71,13 +72,35 @@ class DiseaseAgent(Agent):
 			if len(cellmates) > 0:
 				return
 
-		possible_steps = self.model.grid.get_neighborhood(
-			self.pos,
-			moore=False,
-			include_center=True)
-		choice = self.random.choice(possible_steps)
-		if model.grid.is_cell_empty(choice):
-			self.model.grid.move_agent(self, choice)
+		x_distance = self.goal[0] - self.pos[0]
+		y_distance = self.goal[1] - self.pos[1]
+		if abs(x_distance) >= abs(y_distance):
+			if x_distance > 0:
+				choice = (self.pos[0]+1,self.pos[1])
+				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+					self.model.grid.move_agent(self,choice)
+			else:
+				choice = (self.pos[0]-1,self.pos[1])
+				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+					self.model.grid.move_agent(self,choice)
+		else:
+			if y_distance > 0:
+				choice = (self.pos[0],self.pos[1]+1)
+				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+					self.model.grid.move_agent(self,choice)
+			else:
+				choice = (self.pos[0],self.pos[1]-1)
+				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+					self.model.grid.move_agent(self,choice)
+		# possible_steps = self.model.grid.get_neighborhood(
+		# 	self.pos,
+		# 	moore=False,
+		# 	include_center=True)
+		# self.random.shuffle(possible_steps)
+		# for choice in possible_steps:
+		# 	if (self.goal[0] - self.pos[0] > self.goal[0] - choice[0]) or (self.goal[1] - self.pos[1] > self.goal[1] - choice[1]):
+		# 		if model.grid.is_cell_empty(choice):
+		# 			self.model.grid.move_agent(self, choice)
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
@@ -91,7 +114,7 @@ class DiseaseAgent(Agent):
 	def mutate(self):
 		"""mutates disease in an agent."""
 		if self.disease > 0:
-			if 0.0403 > self.random.random():
+			if 0.1 > self.random.random():
 				self.disease += 1
 
 	def cured(self):
@@ -117,8 +140,8 @@ class DiseaseAgent(Agent):
 
 
 
-model = DiseaseModel(10, 10, 10, 10, 10)
-for i in range(200):
+model = DiseaseModel(10, 10, 10, 50, 50,[(0,0),(25,25),(50,50)])
+for i in range(1000):
 	model.step()
 
 
@@ -136,9 +159,9 @@ plt.show()
 for cell in model.grid.coord_iter():
 	agent, x, y = cell
 	if agent != None:
-		agent_counts[x][y] = agent.resistent[-1]
+		agent_counts[x][y] = agent.goal[0]
 	else:
-		agent_counts[x][y] = -1
+		agent_counts[x][y] = -25
 plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
 plt.show()
