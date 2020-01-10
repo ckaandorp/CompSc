@@ -16,9 +16,11 @@ class DiseaseModel(Model):
 	def __init__(self, highS, middleS, lowS, width, height,rooms):
 		self.num_agents = highS + middleS + lowS
 		self.rooms = rooms
+		#check if agent count is heigh then squares.
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
 
+		#make grid with random activation.
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
 
@@ -28,6 +30,7 @@ class DiseaseModel(Model):
 		self.addAgents(highS, lowS + highS, 2)
 
 	def addAgents(self, n, startID, sociability):
+		#add n amount of agents with a sociability
 		for i in range(n):
 			a = DiseaseAgent(i + startID, sociability, self)
 			self.schedule.add(a)
@@ -55,6 +58,8 @@ class DiseaseAgent(Agent):
 	def move(self):
 		""" Moves agent one step on the grid."""
 		cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
+
+		#behavior based on sociability.
 		if self.sociability == 0:
 			if len(cellmates) > 0:
 				other = self.random.choice(cellmates)
@@ -72,8 +77,10 @@ class DiseaseAgent(Agent):
 			if len(cellmates) > 0:
 				return
 
+		#goal based movement
 		x_distance = self.goal[0] - self.pos[0]
 		y_distance = self.goal[1] - self.pos[1]
+		#takes a step in the direction that is farthest off the current position.
 		if abs(x_distance) >= abs(y_distance):
 			if x_distance > 0:
 				choice = (self.pos[0]+1,self.pos[1])
@@ -92,15 +99,6 @@ class DiseaseAgent(Agent):
 				choice = (self.pos[0],self.pos[1]-1)
 				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
 					self.model.grid.move_agent(self,choice)
-		# possible_steps = self.model.grid.get_neighborhood(
-		# 	self.pos,
-		# 	moore=False,
-		# 	include_center=True)
-		# self.random.shuffle(possible_steps)
-		# for choice in possible_steps:
-		# 	if (self.goal[0] - self.pos[0] > self.goal[0] - choice[0]) or (self.goal[1] - self.pos[1] > self.goal[1] - choice[1]):
-		# 		if model.grid.is_cell_empty(choice):
-		# 			self.model.grid.move_agent(self, choice)
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
@@ -140,7 +138,7 @@ class DiseaseAgent(Agent):
 
 
 
-model = DiseaseModel(10, 10, 10, 50, 50,[(0,0),(25,25),(50,50)])
+model = DiseaseModel(10, 10, 10, 50, 50,[(0,0),(12,25),(50,50)])
 for i in range(1000):
 	model.step()
 
