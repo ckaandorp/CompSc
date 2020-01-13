@@ -6,22 +6,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def diseasecolletor(model):
-	disease_counter = 0
+def disease_collector(model):
+	""" 
+	Collects disease data from a model.
+	Returns: 
+	the total percentage of agents that are sick,
+	dictionary containting how many agents are suffering from each disease and
+	number of different mutations.
+	"""
+	total_sick = 0
 	disease_dict = {}
-	max_disease = 0
+	n_mutations = 0
 	for agent in model.schedule.agents:
+		# check if agent has a disease
 		if agent.disease > 0:
-			disease_counter += 1
-			if agent.disease > max_disease:
-				max_disease = agent.disease
+			total_sick += 1
+			# update number of mutations
+			if agent.disease > n_mutations:
+				n_mutations = agent.disease
+			# add disease to disease dict if previously unknown
 			if agent.disease in disease_dict:
 				disease_dict[agent.disease] += 1
 			else:
 				disease_dict[agent.disease] = 1
+	# calculate sick percentage per disease
 	for mutation in disease_dict:
 		disease_dict[mutation] /= model.num_agents
-	return (disease_counter/len(model.schedule.agents),disease_dict,max_disease)
+		
+	return (total_sick/model.num_agents, disease_dict, n_mutations)
 
 class DiseaseModel(Model):
 	"""
@@ -32,14 +44,17 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height,rooms):
+	def __init__(self, highS, middleS, lowS, width, height, rooms, cureProb=0.1, cureProbFac=2, mutateProb=0.1):
 		self.num_agents = highS + middleS + lowS
 		self.rooms = rooms
-		#check if agent count is heigh then squares.
+		self.initialCureProb = cureProb
+		self.cureProbFac = cureProbFac
+		self.mutateProb = mutateProb
+		# Check if agent fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
 
-		#make grid with random activation.
+		# make grid with random activation.
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
 
@@ -49,8 +64,9 @@ class DiseaseModel(Model):
 		self.addAgents(highS, lowS + highS, 2)
 
 		self.datacollector = DataCollector(
-		model_reporters={"diseasepercentage": diseasecolletor},  # `compute_gini` defined above
+		model_reporters={"diseasepercentage": disease_collector},  # `compute_gini` defined above
 		agent_reporters={"disease": "disease"})
+
 	def addAgents(self, n, startID, sociability):
 		# add n amount of agents with a sociability
 		for i in range(n):
@@ -75,7 +91,10 @@ class DiseaseAgent(Agent):
 		self.diseaserate = 1
 		self.sociability = sociability
 		self.resistent = []
-		self.cureProb = 0.1
+		self.initialCureProb = self.model.initialCureProb
+		self.cureProb = self.initialCureProb
+		self.cureProbFac = self.model.cureProbFac
+		self.mutateProb = self.model.mutateProb
 		self.sickTime = 0
 		self.goal = self.model.rooms[self.random.randrange(len(self.model.rooms))]
 
@@ -133,6 +152,7 @@ class DiseaseAgent(Agent):
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
 		cellmates = self.model.grid.get_neighbors(self.pos,moore=True)
+		# Check if there are neighbors to spread disease to
 		if len(cellmates) > 0:
 			for i in range(len(cellmates)):
 				other = cellmates[i]
@@ -145,23 +165,24 @@ class DiseaseAgent(Agent):
 						if (self.diseaserate * 0.75) > self.random.random():
 							other.disease = self.disease
 
-	def mutate(self):
-		"""mutates disease in an agent."""
+	def mutate(self,):
+		"""Mutates disease in an agent."""
 		if self.disease > 0:
-			if 0.1 > self.random.random():
+			if self.mutateProb > self.random.random():
 				self.disease += 1
 
 	def cured(self):
 		"""Cure agents based on cure probability sick time."""
-		if self.sickTime > 10080: # people are generally sick for at least 1 week (60 * 24 * 7)
+		if self.sickTime > 10080: # people are generally sick for at least 1 week (60 * 24 * 7 = 10080)
+			# Agent is cured
 			if self.cureProb > self.random.random():
 				self.resistent += [self.disease]
 				self.disease = 0
 				self.sickTime = 0
-				self.cureProb = 0.1
+				self.cureProb = self.initialCureProb 
 				print(self.resistent)
 			else:
-				self.cureProb *= 2
+				self.cureProb *= self.cureProbFac
 
 	def step(self):
 		"""Move and spread disease if sick."""
@@ -171,6 +192,7 @@ class DiseaseAgent(Agent):
 			self.mutate()
 			self.spread_disease()
 			self.cured()
+
 
 
 model = DiseaseModel(10, 10, 10, 50, 50,[(0,0),(12,25),(50,50)])
@@ -199,26 +221,27 @@ plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
 plt.show()
 
+# get dataframe
 df = model.datacollector.get_model_vars_dataframe()
 diseased = []
 mutation = []
-max_disease = 0
+n_mutations = 0
 print()
 for index, row in df.iterrows():
 	diseased += [row[0][0]]
 	mutation += [row[0][1]]
-	if row[0][2] > max_disease:
-		max_disease = row[0][2]
+	if row[0][2] > n_mutations:
+		n_mutations = row[0][2]
 
 
 plt.plot(diseased,color="red")
 
 
 disease_plotter = []
-for i in range(max_disease):
+for i in range(n_mutations):
 	disease_plotter += [[]]
 for j in range(len(mutation)):
-	for i in range(max_disease):
+	for i in range(n_mutations):
 		if i in mutation[j]:
 			disease_plotter[i] += [mutation[j][i]]
 		else:
