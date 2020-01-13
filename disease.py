@@ -23,6 +23,60 @@ def diseasecolletor(model):
 		disease_dict[mutation] /= model.num_agents
 	return (disease_counter/len(model.schedule.agents),disease_dict,max_disease)
 
+def AStarSearch(start, end, graph):
+
+	G = {} #Actual movement cost to each position from the start position
+	F = {} #Estimated movement cost of start to end going via this position
+
+	#Initialize starting values
+	G[start] = 0
+	F[start] = graph.heuristic(start, end)
+
+	closedVertices = set()
+	openVertices = set([start])
+	cameFrom = {}
+
+	while len(openVertices) > 0:
+		#Get the vertex in the open list with the lowest F score
+		current = None
+		currentFscore = None
+		for pos in openVertices:
+			if current is None or F[pos] < currentFscore:
+				currentFscore = F[pos]
+				current = pos
+
+		#Check if we have reached the goal
+		if current == end:
+			#Retrace our route backward
+			path = [current]
+			while current in cameFrom:
+				current = cameFrom[current]
+				path.append(current)
+			path.reverse()
+			return path[1:] #Done!
+
+		#Mark the current vertex as closed
+		openVertices.remove(current)
+		closedVertices.add(current)
+
+		#Update scores for vertices near the current position
+		for neighbour in graph.get_vertex_neighbours(current):
+			if neighbour in closedVertices:
+				continue #We have already processed this node exhaustively
+			candidateG = G[current] + graph.move_cost(current, neighbour)
+
+			if neighbour not in openVertices:
+				openVertices.add(neighbour) #Discovered a new vertex
+			elif candidateG >= G[neighbour]:
+				continue #This G score is worse than previously found
+
+			#Adopt this G score
+			cameFrom[neighbour] = current
+			G[neighbour] = candidateG
+			H = graph.heuristic(neighbour, end)
+			F[neighbour] = G[neighbour] + H
+	return [-1]
+
 class DiseaseModel(Model):
 	"""
 	A model with some number of agents.
@@ -51,6 +105,31 @@ class DiseaseModel(Model):
 		self.datacollector = DataCollector(
 		model_reporters={"diseasepercentage": diseasecolletor},  # `compute_gini` defined above
 		agent_reporters={"disease": "disease"})
+
+	def heuristic(self, start, goal):
+		#manhatan distance
+		dx = abs(start[0] - goal[0])
+		dy = abs(start[1] - goal[1])
+		return dx+dy
+
+	def get_vertex_neighbours(self, pos):
+		n = self.grid.get_neighborhood(pos, moore=False)
+		for item in n:
+			if abs(item[0]-pos[0]) > 1 or abs(item[1]-pos[1]) > 1:
+				n.remove(item)
+		#Moves allow link a chess king
+		return n
+
+	def move_cost(self, a, b):
+		# for barrier in self.barriers:
+		# 	if b in barrier:
+		# 		return 100 #Extremely high cost to enter barrier squares
+		if model.grid.is_cell_empty(b):
+			return 1 #Normal movement cost
+		else:
+			return 100
+
+
 	def addAgents(self, n, startID, sociability):
 		# add n amount of agents with a sociability
 		for i in range(n):
@@ -77,6 +156,7 @@ class DiseaseAgent(Agent):
 		self.resistent = []
 		self.cureProb = 0.1
 		self.sickTime = 0
+		self.path = []
 		self.goal = self.model.rooms[self.random.randrange(len(self.model.rooms))]
 
 	def move(self):
@@ -105,30 +185,41 @@ class DiseaseAgent(Agent):
 			if len(cellmates) > 0:
 				return
 
-		# goal based movement
-		x_distance = self.goal[0] - self.pos[0]
-		y_distance = self.goal[1] - self.pos[1]
-		# takes a step in the direction that is farthest off the current position.
-		# if more horizontal distance needs to be traveled.
-		if abs(x_distance) >= abs(y_distance):
-			if x_distance > 0:
-				choice = (self.pos[0]+1,self.pos[1])
-				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-					self.model.grid.move_agent(self,choice)
+		if self.path == []:
+			self.path = AStarSearch(self.pos, self.goal, model)
+		if self.path != []:
+			if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
+				self.model.grid.move_agent(self,self.path[0])
+				self.path.pop(0)
 			else:
-				choice = (self.pos[0]-1,self.pos[1])
-				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-					self.model.grid.move_agent(self,choice)
-		# if more vertical distance needs be traveled.
-		else:
-			if y_distance > 0:
-				choice = (self.pos[0],self.pos[1]+1)
-				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-					self.model.grid.move_agent(self,choice)
-			else:
-				choice = (self.pos[0],self.pos[1]-1)
-				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-					self.model.grid.move_agent(self,choice)
+				self.path = AStarSearch(self.pos, self.goal, model)
+				if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
+					self.model.grid.move_agent(self,self.path[0])
+					self.path.pop(0)
+		# # goal based movement
+		# x_distance = self.goal[0] - self.pos[0]
+		# y_distance = self.goal[1] - self.pos[1]
+		# # takes a step in the direction that is farthest off the current position.
+		# # if more horizontal distance needs to be traveled.
+		# if abs(x_distance) >= abs(y_distance):
+		# 	if x_distance > 0:
+		# 		choice = (self.pos[0]+1,self.pos[1])
+		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+		# 			self.model.grid.move_agent(self,choice)
+		# 	else:
+		# 		choice = (self.pos[0]-1,self.pos[1])
+		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+		# 			self.model.grid.move_agent(self,choice)
+		# # if more vertical distance needs be traveled.
+		# else:
+		# 	if y_distance > 0:
+		# 		choice = (self.pos[0],self.pos[1]+1)
+		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+		# 			self.model.grid.move_agent(self,choice)
+		# 	else:
+		# 		choice = (self.pos[0],self.pos[1]-1)
+		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+		# 			self.model.grid.move_agent(self,choice)
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
@@ -173,8 +264,10 @@ class DiseaseAgent(Agent):
 			self.cured()
 
 
-model = DiseaseModel(10, 10, 10, 50, 50,[(0,0),(12,25),(50,50)])
-for i in range(20):
+model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,12),(24,24)])
+
+for i in range(50):
+	print(i)
 	model.step()
 
 
@@ -194,7 +287,7 @@ for cell in model.grid.coord_iter():
 	if agent != None:
 		agent_counts[x][y] = agent.goal[0]
 	else:
-		agent_counts[x][y] = -25
+		agent_counts[x][y] = -5
 plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
 plt.show()
