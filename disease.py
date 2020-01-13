@@ -1,9 +1,28 @@
 from mesa import Agent, Model
+from mesa.datacollection import DataCollector
 from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+
+
+def diseasecolletor(model):
+	disease_counter = 0
+	disease_dict = {}
+	max_disease = 0
+	for agent in model.schedule.agents:
+		if agent.disease > 0:
+			disease_counter += 1
+			if agent.disease > max_disease:
+				max_disease = agent.disease
+			if agent.disease in disease_dict:
+				disease_dict[agent.disease] += 1
+			else:
+				disease_dict[agent.disease] = 1
+	for mutation in disease_dict:
+		disease_dict[mutation] /= model.num_agents
+	return (disease_counter/len(model.schedule.agents),disease_dict,max_disease)
 
 class DiseaseModel(Model):
 	"""
@@ -34,6 +53,10 @@ class DiseaseModel(Model):
 		self.addAgents(middleS, lowS, 1)
 		self.addAgents(highS, lowS + highS, 2)
 
+		self.datacollector = DataCollector(
+		model_reporters={"diseasepercentage": diseasecolletor},  # `compute_gini` defined above
+		agent_reporters={"disease": "disease"})
+
 	def addWalls(self, n, widthGrid, heightGrid):
 		# Add walls in grid
 		widthRooms = math.floor(widthGrid/n)
@@ -51,7 +74,7 @@ class DiseaseModel(Model):
 				self.grid.place_agent(brick, (x, heightRooms))
 
 	def addAgents(self, n, startID, sociability):
-		#add n amount of agents with a sociability
+		# add n amount of agents with a sociability
 		for i in range(n):
 			a = DiseaseAgent(i + startID, sociability, self)
 			self.schedule.add(a)
@@ -59,8 +82,10 @@ class DiseaseModel(Model):
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
 
+
 	# Continue one step in simulation
 	def step(self):
+		self.datacollector.collect(self)
 		self.schedule.step()
 
 class DiseaseAgent(Agent):
@@ -81,29 +106,38 @@ class DiseaseAgent(Agent):
 		if not isinstance(self, wall):
 			cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
 
-			#behavior based on sociability.
+			newCellmates = []
+			for cellmate in cellmates:
+				if not isinstance(cellmate, wall):
+					newCellmates += [cellmate]
+
+			# behavior based on sociability.
+			# move away from agent if low sociability
 			if self.sociability == 0:
-				if len(cellmates) > 0:
-					other = self.random.choice(cellmates)
-					if not isinstance(other, wall) :
-						escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
-						choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
-						if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
-							if model.grid.is_cell_empty(choice):
-								self.model.grid.move_agent(self, choice)
-								return
+				if len(newCellmates) > 0:
+					other = self.random.choice(newCellmates)
+					# find escape route
+					escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
+					choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
+					if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
+						if model.grid.is_cell_empty(choice):
+							self.model.grid.move_agent(self, choice)
+							return
+			# stop if talked to if middle sociability
 			if self.sociability == 1:
-				for neighbor in cellmates:
-					if not isinstance(neighbor, wall) and neighbor.sociability == 2:
+				for neighbor in newCellmates:
+					if neighbor.sociability == 2:
 						return
+			# stop to talk if there is a neighbor if high sociability
 			if self.sociability == 2:
-				if len(cellmates) > 0:
+				if len(newCellmates) > 0:
 					return
 
-			#goal based movement
+			# goal based movement
 			x_distance = self.goal[0] - self.pos[0]
 			y_distance = self.goal[1] - self.pos[1]
-			#takes a step in the direction that is farthest off the current position.
+			# takes a step in the direction that is farthest off the current position.
+			# if more horizontal distance needs to be traveled.
 			if abs(x_distance) >= abs(y_distance):
 				if x_distance > 0:
 					choice = (self.pos[0]+1,self.pos[1])
@@ -113,6 +147,7 @@ class DiseaseAgent(Agent):
 					choice = (self.pos[0]-1,self.pos[1])
 					if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
 						self.model.grid.move_agent(self,choice)
+			# if more vertical distance needs be traveled.
 			else:
 				if y_distance > 0:
 					choice = (self.pos[0],self.pos[1]+1)
@@ -131,8 +166,13 @@ class DiseaseAgent(Agent):
 				other = cellmates[i]
 				if isinstance(other, wall) and isinstance(self, wall):
 					if self.disease not in other.resistent:
-						if self.diseaserate > self.random.random():
-							other.disease = self.disease
+						# if direct neighbor then normal infection probability, else lowered.
+						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) == 1:
+							if self.diseaserate > self.random.random():
+								other.disease = self.disease
+						else:
+							if (self.diseaserate * 0.75) > self.random.random():
+								other.disease = self.disease
 
 	def mutate(self):
 		"""mutates disease in an agent."""
@@ -142,7 +182,7 @@ class DiseaseAgent(Agent):
 
 	def cured(self):
 		"""Cure agents based on cure probability sick time."""
-		if self.sickTime > 6:
+		if self.sickTime > 10080: # people are generally sick for at least 1 week (60 * 24 * 7)
 			if self.cureProb > self.random.random():
 				self.resistent += [self.disease]
 				self.disease = 0
@@ -166,9 +206,8 @@ class wall(Agent):
 	def __init__(self, unique_id, model):
 		super().__init__(unique_id, model)
 
-
 model = DiseaseModel(10, 10, 10, 50, 50,[(0,0),(12,25),(50,50)])
-for i in range(1000):
+for i in range(20):
 	model.step()
 
 
@@ -195,4 +234,34 @@ for cell in model.grid.coord_iter():
 		agent_counts[x][y] = -25
 plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
+plt.show()
+
+df = model.datacollector.get_model_vars_dataframe()
+diseased = []
+mutation = []
+max_disease = 0
+print()
+for index, row in df.iterrows():
+	diseased += [row[0][0]]
+	mutation += [row[0][1]]
+	if row[0][2] > max_disease:
+		max_disease = row[0][2]
+
+
+plt.plot(diseased,color="red")
+
+
+disease_plotter = []
+for i in range(max_disease):
+	disease_plotter += [[]]
+for j in range(len(mutation)):
+	for i in range(max_disease):
+		if i in mutation[j]:
+			disease_plotter[i] += [mutation[j][i]]
+		else:
+			disease_plotter[i] += [0]
+
+for mutation in disease_plotter:
+	plt.plot(mutation)
+
 plt.show()
