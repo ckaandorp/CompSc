@@ -3,6 +3,7 @@ from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 class DiseaseModel(Model):
 	"""
@@ -24,10 +25,30 @@ class DiseaseModel(Model):
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
 
+		# Create walls
+		numberRooms = 3
+		self.addWalls(numberRooms, width, height)
+
 		# Create agents
 		self.addAgents(lowS, 0, 0)
 		self.addAgents(middleS, lowS, 1)
 		self.addAgents(highS, lowS + highS, 2)
+
+	def addWalls(self, n, widthGrid, heightGrid):
+		# Add walls in grid
+		widthRooms = math.floor(widthGrid/n)
+		heightRooms = math.floor(heightGrid/n)
+		
+		doorWidth = 4
+		for i in range(2):
+			for y in range(heightRooms):
+				brick = wall(self.num_agents, self) 
+				self.grid.place_agent(brick, ((i+1) * widthRooms, y))
+		doorNumber = 1
+		for x in range(widthGrid):
+			if (x % widthRooms) < (widthRooms - 5):
+				brick = wall(self.num_agents, self) 
+				self.grid.place_agent(brick, (x, heightRooms))
 
 	def addAgents(self, n, startID, sociability):
 		#add n amount of agents with a sociability
@@ -57,48 +78,50 @@ class DiseaseAgent(Agent):
 
 	def move(self):
 		""" Moves agent one step on the grid."""
-		cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
+		if not isinstance(self, wall):
+			cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
 
-		#behavior based on sociability.
-		if self.sociability == 0:
-			if len(cellmates) > 0:
-				other = self.random.choice(cellmates)
-				escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
-				choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
-				if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
-					if model.grid.is_cell_empty(choice):
-						self.model.grid.move_agent(self, choice)
+			#behavior based on sociability.
+			if self.sociability == 0:
+				if len(cellmates) > 0:
+					other = self.random.choice(cellmates)
+					if not isinstance(other, wall) :
+						escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
+						choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
+						if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
+							if model.grid.is_cell_empty(choice):
+								self.model.grid.move_agent(self, choice)
+								return
+			if self.sociability == 1:
+				for neighbor in cellmates:
+					if not isinstance(neighbor, wall) and neighbor.sociability == 2:
 						return
-		if self.sociability == 1:
-			for neighbor in cellmates:
-				if neighbor.sociability == 2:
+			if self.sociability == 2:
+				if len(cellmates) > 0:
 					return
-		if self.sociability == 2:
-			if len(cellmates) > 0:
-				return
 
-		#goal based movement
-		x_distance = self.goal[0] - self.pos[0]
-		y_distance = self.goal[1] - self.pos[1]
-		#takes a step in the direction that is farthest off the current position.
-		if abs(x_distance) >= abs(y_distance):
-			if x_distance > 0:
-				choice = (self.pos[0]+1,self.pos[1])
-				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-					self.model.grid.move_agent(self,choice)
+			#goal based movement
+			x_distance = self.goal[0] - self.pos[0]
+			y_distance = self.goal[1] - self.pos[1]
+			#takes a step in the direction that is farthest off the current position.
+			if abs(x_distance) >= abs(y_distance):
+				if x_distance > 0:
+					choice = (self.pos[0]+1,self.pos[1])
+					if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+						self.model.grid.move_agent(self,choice)
+				else:
+					choice = (self.pos[0]-1,self.pos[1])
+					if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+						self.model.grid.move_agent(self,choice)
 			else:
-				choice = (self.pos[0]-1,self.pos[1])
-				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-					self.model.grid.move_agent(self,choice)
-		else:
-			if y_distance > 0:
-				choice = (self.pos[0],self.pos[1]+1)
-				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-					self.model.grid.move_agent(self,choice)
-			else:
-				choice = (self.pos[0],self.pos[1]-1)
-				if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-					self.model.grid.move_agent(self,choice)
+				if y_distance > 0:
+					choice = (self.pos[0],self.pos[1]+1)
+					if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+						self.model.grid.move_agent(self,choice)
+				else:
+					choice = (self.pos[0],self.pos[1]-1)
+					if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
+						self.model.grid.move_agent(self,choice)
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
@@ -106,9 +129,11 @@ class DiseaseAgent(Agent):
 		if len(cellmates) > 0:
 			for i in range(len(cellmates)):
 				other = cellmates[i]
-				if self.disease not in other.resistent:
-					if self.diseaserate > self.random.random():
-						other.disease = self.disease
+				if isinstance(other, wall) and isinstance(self, wall):
+					if self.disease not in other.resistent:
+						if self.diseaserate > self.random.random():
+							other.disease = self.disease
+
 	def mutate(self):
 		"""mutates disease in an agent."""
 		if self.disease > 0:
@@ -136,6 +161,10 @@ class DiseaseAgent(Agent):
 			self.spread_disease()
 			self.cured()
 
+class wall(Agent):
+	"""A wall seperating the spaces."""
+	def __init__(self, unique_id, model):
+		super().__init__(unique_id, model)
 
 
 model = DiseaseModel(10, 10, 10, 50, 50,[(0,0),(12,25),(50,50)])
@@ -146,8 +175,10 @@ for i in range(1000):
 agent_counts = np.zeros((model.grid.width, model.grid.height))
 for cell in model.grid.coord_iter():
 	agent, x, y = cell
-	if agent != None:
+	if agent != None and not isinstance(agent, wall):
 		agent_counts[x][y] = agent.disease
+	elif agent != None and isinstance(agent, wall):
+		agent_counts[x][y] = 5
 	else:
 		agent_counts[x][y] = -1
 plt.imshow(agent_counts, interpolation='nearest')
@@ -156,8 +187,10 @@ plt.show()
 
 for cell in model.grid.coord_iter():
 	agent, x, y = cell
-	if agent != None:
+	if agent != None and not isinstance(agent, wall):
 		agent_counts[x][y] = agent.goal[0]
+	elif agent != None and isinstance(agent, wall):
+		agent_counts[x][y] = -50
 	else:
 		agent_counts[x][y] = -25
 plt.imshow(agent_counts, interpolation='nearest')
