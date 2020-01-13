@@ -276,7 +276,7 @@ class DiseaseAgent(Agent):
 		if len(cellmates) > 0:
 			for i in range(len(cellmates)):
 				other = cellmates[i]
-				if isinstance(other, wall) and isinstance(self, wall):
+				if not isinstance(other, wall) and not isinstance(self, wall):
 					if self.disease not in other.resistent:
 						# if direct neighbor then normal infection probability, else lowered.
 						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) == 1:
@@ -320,9 +320,9 @@ class wall(Agent):
 		super().__init__(unique_id, model)
 
 
-model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,12),(24,24)])
+model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)])
 
-for i in range(50):
+for i in range(100):
 	print(i)
 	model.step()
 
