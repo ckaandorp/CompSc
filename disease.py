@@ -4,24 +4,37 @@ from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 import numpy as np
 import matplotlib.pyplot as plt
+import math
 
 
-def diseasecolletor(model):
-	disease_counter = 0
+def disease_collector(model):
+	"""
+	Collects disease data from a model.
+	Returns:
+	the total percentage of agents that are sick,
+	dictionary containting how many agents are suffering from each disease and
+	number of different mutations.
+	"""
+	total_sick = 0
 	disease_dict = {}
-	max_disease = 0
+	n_mutations = 0
 	for agent in model.schedule.agents:
+		# check if agent has a disease
 		if agent.disease > 0:
-			disease_counter += 1
-			if agent.disease > max_disease:
-				max_disease = agent.disease
+			total_sick += 1
+			# update number of mutations
+			if agent.disease > n_mutations:
+				n_mutations = agent.disease
+			# add disease to disease dict if previously unknown
 			if agent.disease in disease_dict:
 				disease_dict[agent.disease] += 1
 			else:
 				disease_dict[agent.disease] = 1
+	# calculate sick percentage per disease
 	for mutation in disease_dict:
 		disease_dict[mutation] /= model.num_agents
-	return (disease_counter/len(model.schedule.agents),disease_dict,max_disease)
+
+	return (total_sick/model.num_agents, disease_dict, n_mutations)
 
 def AStarSearch(start, end, graph):
 
@@ -86,16 +99,23 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height,rooms):
+	def __init__(self, highS, middleS, lowS, width, height, rooms, cureProb=0.1, cureProbFac=2, mutateProb=0.1):
 		self.num_agents = highS + middleS + lowS
 		self.rooms = rooms
-		#check if agent count is heigh then squares.
+		self.initialCureProb = cureProb
+		self.cureProbFac = cureProbFac
+		self.mutateProb = mutateProb
+		# Check if agent fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
 
-		#make grid with random activation.
+		# make grid with random activation.
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
+
+		# Create walls
+		numberRooms = 3
+		self.addWalls(numberRooms, width, height)
 
 		# Create agents
 		self.addAgents(lowS, 0, 0)
@@ -103,7 +123,7 @@ class DiseaseModel(Model):
 		self.addAgents(highS, lowS + highS, 2)
 
 		self.datacollector = DataCollector(
-		model_reporters={"diseasepercentage": diseasecolletor},  # `compute_gini` defined above
+		model_reporters={"diseasepercentage": disease_collector},  # `compute_gini` defined above
 		agent_reporters={"disease": "disease"})
 
 	def heuristic(self, start, goal):
@@ -128,6 +148,21 @@ class DiseaseModel(Model):
 			return 1 #Normal movement cost
 		else:
 			return 100
+	def addWalls(self, n, widthGrid, heightGrid):
+		# Add walls in grid
+		widthRooms = math.floor(widthGrid/n)
+		heightRooms = math.floor(heightGrid/n)
+
+		doorWidth = 4
+		for i in range(2):
+			for y in range(heightRooms):
+				brick = wall(self.num_agents, self)
+				self.grid.place_agent(brick, ((i+1) * widthRooms, y))
+		doorNumber = 1
+		for x in range(widthGrid):
+			if (x % widthRooms) < (widthRooms - 5):
+				brick = wall(self.num_agents, self)
+				self.grid.place_agent(brick, (x, heightRooms))
 
 
 	def addAgents(self, n, startID, sociability):
@@ -154,31 +189,44 @@ class DiseaseAgent(Agent):
 		self.diseaserate = 1
 		self.sociability = sociability
 		self.resistent = []
-		self.cureProb = 0.1
+		self.initialCureProb = self.model.initialCureProb
+		self.cureProb = self.initialCureProb
+		self.cureProbFac = self.model.cureProbFac
+		self.mutateProb = self.model.mutateProb
 		self.sickTime = 0
 		self.path = []
 		self.goal = self.model.rooms[self.random.randrange(len(self.model.rooms))]
 
 	def move(self):
 		""" Moves agent one step on the grid."""
-		cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
+		if not isinstance(self, wall):
+			cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
 
-		# behavior based on sociability.
-		# move away from agent if low sociability
-		if self.sociability == 0:
-			if len(cellmates) > 0:
-				other = self.random.choice(cellmates)
-				# find escape route
-				escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
-				choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
-				if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
-					if model.grid.is_cell_empty(choice):
-						self.model.grid.move_agent(self, choice)
+			newCellmates = []
+			for cellmate in cellmates:
+				if not isinstance(cellmate, wall):
+					newCellmates += [cellmate]
+
+			# behavior based on sociability.
+			# move away from agent if low sociability
+			if self.sociability == 0:
+				if len(newCellmates) > 0:
+					other = self.random.choice(newCellmates)
+					# find escape route
+					escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
+					choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
+					if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
+						if model.grid.is_cell_empty(choice):
+							self.model.grid.move_agent(self, choice)
+							return
+			# stop if talked to if middle sociability
+			if self.sociability == 1:
+				for neighbor in newCellmates:
+					if neighbor.sociability == 2:
 						return
-		# stop if talked to if middle sociability
-		if self.sociability == 1:
-			for neighbor in cellmates:
-				if neighbor.sociability == 2:
+			# stop to talk if there is a neighbor if high sociability
+			if self.sociability == 2:
+				if len(newCellmates) > 0:
 					return
 		# stop to talk if there is a neighbor if high sociability
 		if self.sociability == 2:
@@ -224,35 +272,38 @@ class DiseaseAgent(Agent):
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
 		cellmates = self.model.grid.get_neighbors(self.pos,moore=True)
+		# Check if there are neighbors to spread disease to
 		if len(cellmates) > 0:
 			for i in range(len(cellmates)):
 				other = cellmates[i]
-				if self.disease not in other.resistent:
-					# if direct neighbor then normal infection probability, else lowered.
-					if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) == 1:
-						if self.diseaserate > self.random.random():
-							other.disease = self.disease
-					else:
-						if (self.diseaserate * 0.75) > self.random.random():
-							other.disease = self.disease
+				if isinstance(other, wall) and isinstance(self, wall):
+					if self.disease not in other.resistent:
+						# if direct neighbor then normal infection probability, else lowered.
+						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) == 1:
+							if self.diseaserate > self.random.random():
+								other.disease = self.disease
+						else:
+							if (self.diseaserate * 0.75) > self.random.random():
+								other.disease = self.disease
 
-	def mutate(self):
-		"""mutates disease in an agent."""
+	def mutate(self,):
+		"""Mutates disease in an agent."""
 		if self.disease > 0:
-			if 0.1 > self.random.random():
+			if self.mutateProb > self.random.random():
 				self.disease += 1
 
 	def cured(self):
 		"""Cure agents based on cure probability sick time."""
-		if self.sickTime > 10080: # people are generally sick for at least 1 week (60 * 24 * 7)
+		if self.sickTime > 10080: # people are generally sick for at least 1 week (60 * 24 * 7 = 10080)
+			# Agent is cured
 			if self.cureProb > self.random.random():
 				self.resistent += [self.disease]
 				self.disease = 0
 				self.sickTime = 0
-				self.cureProb = 0.1
+				self.cureProb = self.initialCureProb
 				print(self.resistent)
 			else:
-				self.cureProb *= 2
+				self.cureProb *= self.cureProbFac
 
 	def step(self):
 		"""Move and spread disease if sick."""
@@ -262,6 +313,11 @@ class DiseaseAgent(Agent):
 			self.mutate()
 			self.spread_disease()
 			self.cured()
+
+class wall(Agent):
+	"""A wall seperating the spaces."""
+	def __init__(self, unique_id, model):
+		super().__init__(unique_id, model)
 
 
 model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,12),(24,24)])
@@ -274,8 +330,10 @@ for i in range(50):
 agent_counts = np.zeros((model.grid.width, model.grid.height))
 for cell in model.grid.coord_iter():
 	agent, x, y = cell
-	if agent != None:
+	if agent != None and not isinstance(agent, wall):
 		agent_counts[x][y] = agent.disease
+	elif agent != None and isinstance(agent, wall):
+		agent_counts[x][y] = 5
 	else:
 		agent_counts[x][y] = -1
 plt.imshow(agent_counts, interpolation='nearest')
@@ -284,34 +342,37 @@ plt.show()
 
 for cell in model.grid.coord_iter():
 	agent, x, y = cell
-	if agent != None:
+	if agent != None and not isinstance(agent, wall):
 		agent_counts[x][y] = agent.goal[0]
+	elif agent != None and isinstance(agent, wall):
+		agent_counts[x][y] = -50
 	else:
 		agent_counts[x][y] = -5
 plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
 plt.show()
 
+# get dataframe
 df = model.datacollector.get_model_vars_dataframe()
 diseased = []
 mutation = []
-max_disease = 0
+n_mutations = 0
 print()
 for index, row in df.iterrows():
 	diseased += [row[0][0]]
 	mutation += [row[0][1]]
-	if row[0][2] > max_disease:
-		max_disease = row[0][2]
+	if row[0][2] > n_mutations:
+		n_mutations = row[0][2]
 
 
 plt.plot(diseased,color="red")
 
 
 disease_plotter = []
-for i in range(max_disease):
+for i in range(n_mutations):
 	disease_plotter += [[]]
 for j in range(len(mutation)):
-	for i in range(max_disease):
+	for i in range(n_mutations):
 		if i in mutation[j]:
 			disease_plotter[i] += [mutation[j][i]]
 		else:
