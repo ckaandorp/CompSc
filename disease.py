@@ -1,8 +1,27 @@
 from mesa import Agent, Model
+from mesa.datacollection import DataCollector
 from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 import numpy as np
 import matplotlib.pyplot as plt
+
+
+def diseasecolletor(model):
+	disease_counter = 0
+	disease_dict = {}
+	max_disease = 0
+	for agent in model.schedule.agents:
+		if agent.disease > 0:
+			disease_counter += 1
+			if agent.disease > max_disease:
+				max_disease = agent.disease
+			if agent.disease in disease_dict:
+				disease_dict[agent.disease] += 1
+			else:
+				disease_dict[agent.disease] = 1
+	for mutation in disease_dict:
+		disease_dict[mutation] /= model.num_agents
+	return (disease_counter/len(model.schedule.agents),disease_dict,max_disease)
 
 class DiseaseModel(Model):
 	"""
@@ -29,6 +48,9 @@ class DiseaseModel(Model):
 		self.addAgents(middleS, lowS, 1)
 		self.addAgents(highS, lowS + highS, 2)
 
+		self.datacollector = DataCollector(
+		model_reporters={"diseasepercentage": diseasecolletor},  # `compute_gini` defined above
+		agent_reporters={"disease": "disease"})
 	def addAgents(self, n, startID, sociability):
 		#add n amount of agents with a sociability
 		for i in range(n):
@@ -38,8 +60,10 @@ class DiseaseModel(Model):
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
 
+
 	# Continue one step in simulation
 	def step(self):
+		self.datacollector.collect(self)
 		self.schedule.step()
 
 class DiseaseAgent(Agent):
@@ -139,7 +163,7 @@ class DiseaseAgent(Agent):
 
 
 model = DiseaseModel(10, 10, 10, 50, 50,[(0,0),(12,25),(50,50)])
-for i in range(1000):
+for i in range(20):
 	model.step()
 
 
@@ -162,4 +186,34 @@ for cell in model.grid.coord_iter():
 		agent_counts[x][y] = -25
 plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
+plt.show()
+
+df = model.datacollector.get_model_vars_dataframe()
+diseased = []
+mutation = []
+max_disease = 0
+print()
+for index, row in df.iterrows():
+	diseased += [row[0][0]]
+	mutation += [row[0][1]]
+	if row[0][2] > max_disease:
+		max_disease = row[0][2]
+
+
+plt.plot(diseased,color="red")
+
+
+disease_plotter = []
+for i in range(max_disease):
+	disease_plotter += [[]]
+for j in range(len(mutation)):
+	for i in range(max_disease):
+		if i in mutation[j]:
+			disease_plotter[i] += [mutation[j][i]]
+		else:
+			disease_plotter[i] += [0]
+
+for mutation in disease_plotter:
+	plt.plot(mutation)
+
 plt.show()
