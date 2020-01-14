@@ -124,14 +124,14 @@ class DiseaseModel(Model):
 		self.addAgents(highS, lowS + highS, 2)
 
 		self.datacollector = DataCollector(
-		model_reporters={"diseasepercentage": disease_collector},  # `compute_gini` defined above
-		agent_reporters={"disease": "disease"})
+			model_reporters={"diseasepercentage": disease_collector},  # `compute_gini` defined above
+			agent_reporters={"disease": "disease"})
 
 	def heuristic(self, start, goal):
-		#manhatan distance
+		# Manhatan distance
 		dx = abs(start[0] - goal[0])
 		dy = abs(start[1] - goal[1])
-		return dx+dy
+		return dx + dy
 
 	def get_vertex_neighbours(self, pos):
 		n = self.grid.get_neighborhood(pos, moore=False)
@@ -139,7 +139,7 @@ class DiseaseModel(Model):
 		for item in n:
 			if not abs(item[0]-pos[0]) > 1 and not abs(item[1]-pos[1]) > 1:
 				neighbours += [item]
-		#Moves allow link a chess king
+		# Moves allow link a chess king
 		return neighbours
 
 	def move_cost(self, a, b):
@@ -147,25 +147,27 @@ class DiseaseModel(Model):
 		# 	if b in barrier:
 		# 		return 100 #Extremely high cost to enter barrier squares
 		if model.grid.is_cell_empty(b):
-			return 1 #Normal movement cost
+			return 1 # Normal movement cost
 		else:
 			return 100
+
 	def addWalls(self, n, widthGrid, heightGrid):
 		# Add walls in grid
 		widthRooms = math.floor(widthGrid/n)
 		heightRooms = math.floor(heightGrid/n)
-
-		doorWidth = 4
-		for i in range(2):
+		widthHall = widthGrid - 2 * widthRooms 
+		heightHall = heightGrid - 2 * heightRooms
+		for i in range(n - 1):
 			for y in range(heightRooms):
 				brick = wall(self.num_agents, self)
-				self.grid.place_agent(brick, ((i+1) * widthRooms, y))
-		doorNumber = 1
+				self.grid.place_agent(brick, ((i + 1) * widthRooms, y))
+				self.grid.place_agent(brick, ((i + 1) * widthRooms, y + heightRooms + heightHall))
+		doorWidth = 3
 		for x in range(widthGrid):
-			if (x % widthRooms) < (widthRooms - 5):
+			if (x % widthRooms) < (widthRooms - doorWidth):
 				brick = wall(self.num_agents, self)
 				self.grid.place_agent(brick, (x, heightRooms))
-
+				self.grid.place_agent(brick, (x, heightRooms + heightHall - 1))
 
 	def addAgents(self, n, startID, sociability):
 		# add n amount of agents with a sociability
@@ -175,7 +177,6 @@ class DiseaseModel(Model):
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
-
 
 	# Continue one step in simulation
 	def step(self):
@@ -302,9 +303,9 @@ class wall(Agent):
 		super().__init__(unique_id, model)
 
 
-model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)],mutateProb=0.01)
+model = DiseaseModel(20, 20, 20, 25, 25, [(0,0),(12,0),(24,0)], mutateProb=0.005)
 
-for i in range(20):
+for i in range(50):
 	print(i)
 	model.step()
 
@@ -327,7 +328,7 @@ for cell in model.grid.coord_iter():
 	if agent != None and not isinstance(agent, wall):
 		agent_counts[x][y] = agent.goal[0]
 	elif agent != None and isinstance(agent, wall):
-		agent_counts[x][y] = -50
+		agent_counts[x][y] = -40
 	else:
 		agent_counts[x][y] = -5
 plt.imshow(agent_counts, interpolation='nearest')
@@ -347,7 +348,7 @@ for index, row in df.iterrows():
 		n_mutations = row[0][2]
 
 
-plt.plot(diseased,color="red")
+plt.plot(diseased, color="red")
 
 
 disease_plotter = []
