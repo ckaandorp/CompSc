@@ -7,6 +7,35 @@ import matplotlib.pyplot as plt
 import math
 
 
+def disease_spreader(cellmates,self,prob):
+	if len(cellmates) > 0:
+		for i in range(len(cellmates)):
+			other = cellmates[i]
+			if not isinstance(other, wall) and not isinstance(self, wall):
+				if self.disease not in other.resistent:
+					if not wall_in_the_way(self,other):
+					# if not glitched looped through the map.
+						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
+							if self.diseaserate * prob > self.random.random():
+								other.disease = self.disease
+
+def wall_in_the_way(self,other):
+	difference_x = self.pos[0] - other.pos[0]
+	difference_y = self.pos[1] - other .pos[1]
+	print('diff',difference_x,difference_y)
+	for i in range(abs(difference_x)):
+		if difference_x < 0:
+			i *= -1
+		cell = self.model.grid.get_neighborhood((self.pos[0]+i,self.pos[1]),moore=False, include_center=True, radius=0)
+		if cell != None and isinstance(cell,wall):
+			return True
+	for i in range(abs(difference_y)):
+		if difference_y < 0:
+			i *= -1
+		cell = self.model.grid.get_neighborhood((self.pos[0]+difference_x,self.pos[1]+i),moore=False, include_center=True, radius=0)
+		if cell != None and isinstance(cell,wall):
+			return True
+	return False
 def disease_collector(model):
 	"""
 	Collects disease data from a model.
@@ -252,20 +281,20 @@ class DiseaseAgent(Agent):
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
-		cellmates = self.model.grid.get_neighbors(self.pos,moore=True)
+		cellmates = set(self.model.grid.get_neighbors(self.pos,moore=True))
+		cellmates_2 = set(self.model.grid.get_neighbors(self.pos,moore=True,radius=2))
+		cellmates_3 = set(self.model.grid.get_neighbors(self.pos,moore=True,radius=3))
+		cellmates_4 = set(self.model.grid.get_neighbors(self.pos,moore=True,radius=4))
+		cellmates = list(cellmates)
+		cellmates_2 = list(cellmates_2.difference(cellmates))
+		cellmates_3 = list(cellmates_3.difference(cellmates_2))
+		cellmates_4 = list(cellmates_4.difference(cellmates_3))
 		# Check if there are neighbors to spread disease to
-		if len(cellmates) > 0:
-			for i in range(len(cellmates)):
-				other = cellmates[i]
-				if not isinstance(other, wall) and not isinstance(self, wall):
-					if self.disease not in other.resistent:
-						# if direct neighbor then normal infection probability, else lowered.
-						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) == 1:
-							if self.diseaserate > self.random.random():
-								other.disease = self.disease
-						else:
-							if (self.diseaserate * 0.75) > self.random.random():
-								other.disease = self.disease
+		disease_spreader(cellmates,self,1)
+		disease_spreader(cellmates_2,self,0.75)
+		disease_spreader(cellmates_3,self,0.5)
+		disease_spreader(cellmates_4,self,0.125)
+
 
 	def mutate(self):
 		"""Mutates disease in an agent."""
