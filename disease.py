@@ -17,11 +17,13 @@ def disease_collector(model):
 	"""
 	total_sick = 0
 	disease_dict = {}
+	social_dict = {'0':0, '1':0, '2':0}
 	n_mutations = 0
 	for agent in model.schedule.agents:
 		# check if agent has a disease
 		if agent.disease > 0:
 			total_sick += 1
+			social_dict[str(agent.sociability)] += 1
 			# update number of mutations
 			if agent.disease > n_mutations:
 				n_mutations = agent.disease
@@ -34,7 +36,7 @@ def disease_collector(model):
 	for mutation in disease_dict:
 		disease_dict[mutation] /= model.num_agents
 
-	return (total_sick/model.num_agents, disease_dict, n_mutations)
+	return (total_sick/model.num_agents, disease_dict, n_mutations, social_dict)
 
 def AStarSearch(start, end, graph):
 
@@ -99,13 +101,16 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, rooms, cureProb=0.1, cureProbFac=2, mutateProb=0.1):
+	def __init__(self, highS, middleS, lowS, width, height, rooms, cureProb=0.1, cureProbFac=2, mutateProb=0.0005):
 		self.num_agents = highS + middleS + lowS
+		self.lowS = lowS
+		self.middleS = middleS
+		self.highS = highS
 		self.rooms = rooms
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
-		self.maxdisease = 1
+		self.maxDisease = 1
 		# Check if agent fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
@@ -272,8 +277,8 @@ class DiseaseAgent(Agent):
 		"""Mutates disease in an agent."""
 		if self.disease > 0:
 			if self.mutateProb > self.random.random():
-				self.model.maxdisease += 1
-				self.disease = self.model.maxdisease
+				self.model.maxDisease += 1
+				self.disease = self.model.maxDisease
 
 	def cured(self):
 		"""Cure agents based on cure probability sick time."""
@@ -303,10 +308,68 @@ class wall(Agent):
 		super().__init__(unique_id, model)
 
 
-model = DiseaseModel(20, 20, 20, 25, 25, [(0,0),(12,0),(24,0)], mutateProb=0.005)
 
-for i in range(50):
-	print(i)
+def disease_graph(model):
+	""""Plots progress of disease given a model"""
+	# get dataframe
+	df = model.datacollector.get_model_vars_dataframe()
+	diseased = []
+	mutation = []
+	low_sociability = []
+	middle_sociability = []
+	high_sociability = []
+	n_mutations = 0
+	
+	for index, row in df.iterrows():
+		diseased += [row[0][0]]
+		mutation += [row[0][1]]
+		sociability = row[0][3]
+		low_sociability += [sociability['0']]
+		middle_sociability += [sociability['1']]
+		high_sociability += [sociability['2']]
+		if row[0][2] > n_mutations:
+			n_mutations = row[0][2]
+
+	plt.plot(diseased, color="red", label='total')
+
+	# collect all diseases
+	disease_plotter = []
+
+	for _ in range(n_mutations):
+		disease_plotter += [[]]
+	for j in range(len(mutation)):
+		for i in range(n_mutations):
+			if i in mutation[j]:
+				disease_plotter[i] += [mutation[j][i]]
+			else:
+				disease_plotter[i] += [0]
+
+	# plot all diseases
+	for mutation in disease_plotter:
+		plt.plot(mutation, linestyle='dashed')
+
+
+	plt.xlabel('Timesteps')
+	plt.ylabel('Infected (%)')
+	plt.legend()
+	plt.show()
+
+	# plot agent sociability
+	plt.plot([x / model.num_agents for x in low_sociability], label='low ' + str(model.lowS))
+	plt.plot([x / model.num_agents for x in middle_sociability], label='middle ' + str(model.middleS))
+	plt.plot([x / model.num_agents for x in high_sociability], label='high ' + str(model.highS))
+	plt.ylabel("Infected (%)")
+	plt.xlabel("Timesteps")
+	plt.legend()
+	plt.show()
+
+
+
+
+model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)],mutateProb=0.001)
+
+for i in range(100):
+	# print(i)
 	model.step()
 
 
@@ -335,33 +398,5 @@ plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
 plt.show()
 
-# get dataframe
-df = model.datacollector.get_model_vars_dataframe()
-diseased = []
-mutation = []
-n_mutations = 0
-print()
-for index, row in df.iterrows():
-	diseased += [row[0][0]]
-	mutation += [row[0][1]]
-	if row[0][2] > n_mutations:
-		n_mutations = row[0][2]
 
-
-plt.plot(diseased, color="red")
-
-
-disease_plotter = []
-for i in range(n_mutations):
-	disease_plotter += [[]]
-for j in range(len(mutation)):
-	for i in range(n_mutations):
-		if i in mutation[j]:
-			disease_plotter[i] += [mutation[j][i]]
-		else:
-			disease_plotter[i] += [0]
-
-for mutation in disease_plotter:
-	plt.plot(mutation)
-
-plt.show()
+disease_graph(model)
