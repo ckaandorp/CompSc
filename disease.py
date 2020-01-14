@@ -22,7 +22,6 @@ def disease_spreader(cellmates,self,prob):
 def wall_in_the_way(self,other):
 	difference_x = self.pos[0] - other.pos[0]
 	difference_y = self.pos[1] - other .pos[1]
-	print('diff',difference_x,difference_y)
 	for i in range(abs(difference_x)):
 		if difference_x < 0:
 			i *= -1
@@ -189,7 +188,7 @@ class DiseaseModel(Model):
 		# Add walls in grid
 		widthRooms = math.floor(widthGrid/n)
 		heightRooms = math.floor(heightGrid/n)
-		widthHall = widthGrid - 2 * widthRooms 
+		widthHall = widthGrid - 2 * widthRooms
 		heightHall = heightGrid - 2 * heightRooms
 		for i in range(n - 1):
 			for y in range(heightRooms):
@@ -348,7 +347,7 @@ def disease_graph(model):
 	middle_sociability = []
 	high_sociability = []
 	n_mutations = 0
-	
+
 	for index, row in df.iterrows():
 		diseased += [row[0][0]]
 		mutation += [row[0][1]]
