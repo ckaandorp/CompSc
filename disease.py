@@ -105,6 +105,7 @@ class DiseaseModel(Model):
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
+		self.maxdisease = 1
 		# Check if agent fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
@@ -134,11 +135,12 @@ class DiseaseModel(Model):
 
 	def get_vertex_neighbours(self, pos):
 		n = self.grid.get_neighborhood(pos, moore=False)
+		neighbours = []
 		for item in n:
-			if abs(item[0]-pos[0]) > 1 or abs(item[1]-pos[1]) > 1:
-				n.remove(item)
+			if not abs(item[0]-pos[0]) > 1 and not abs(item[1]-pos[1]) > 1:
+				neighbours += [item]
 		#Moves allow link a chess king
-		return n
+		return neighbours
 
 	def move_cost(self, a, b):
 		# for barrier in self.barriers:
@@ -194,6 +196,7 @@ class DiseaseAgent(Agent):
 		self.cureProbFac = self.model.cureProbFac
 		self.mutateProb = self.model.mutateProb
 		self.sickTime = 0
+		self.talking = 0.1
 		self.path = []
 		self.goal = self.model.rooms[self.random.randrange(len(self.model.rooms))]
 
@@ -201,10 +204,9 @@ class DiseaseAgent(Agent):
 		""" Moves agent one step on the grid."""
 		if not isinstance(self, wall):
 			cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
-
 			newCellmates = []
 			for cellmate in cellmates:
-				if not isinstance(cellmate, wall):
+				if not abs(cellmate.pos[0]-self.pos[0]) > 1 and not abs(cellmate.pos[1]-self.pos[1]) > 1 and not isinstance(cellmate, wall):
 					newCellmates += [cellmate]
 
 			# behavior based on sociability.
@@ -220,54 +222,33 @@ class DiseaseAgent(Agent):
 							self.model.grid.move_agent(self, choice)
 							return
 			# stop if talked to if middle sociability
-			if self.sociability == 1:
+			if self.sociability == 1 and self.random.random() > self.talking:
 				for neighbor in newCellmates:
 					if neighbor.sociability == 2:
+						self.talking *= 2
 						return
-			# stop to talk if there is a neighbor if high sociability
-			if self.sociability == 2:
-				if len(newCellmates) > 0:
-					return
-		# stop to talk if there is a neighbor if high sociability
-		if self.sociability == 2:
-			if len(cellmates) > 0:
-				return
-
-		if self.path == []:
-			self.path = AStarSearch(self.pos, self.goal, model)
-		if self.path != []:
-			if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
-				self.model.grid.move_agent(self,self.path[0])
-				self.path.pop(0)
 			else:
+				self.talking = 0.1
+
+			# stop to talk if there is a neighbor if high sociability
+			if self.sociability == 2  and self.random.random() > self.talking:
+				if len(cellmates) > 0:
+					self.talking *= 2
+					return
+			else:
+				self.talking = 0.1
+
+			if self.path == []:
 				self.path = AStarSearch(self.pos, self.goal, model)
+			if self.path != []:
 				if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
 					self.model.grid.move_agent(self,self.path[0])
 					self.path.pop(0)
-		# # goal based movement
-		# x_distance = self.goal[0] - self.pos[0]
-		# y_distance = self.goal[1] - self.pos[1]
-		# # takes a step in the direction that is farthest off the current position.
-		# # if more horizontal distance needs to be traveled.
-		# if abs(x_distance) >= abs(y_distance):
-		# 	if x_distance > 0:
-		# 		choice = (self.pos[0]+1,self.pos[1])
-		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-		# 			self.model.grid.move_agent(self,choice)
-		# 	else:
-		# 		choice = (self.pos[0]-1,self.pos[1])
-		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-		# 			self.model.grid.move_agent(self,choice)
-		# # if more vertical distance needs be traveled.
-		# else:
-		# 	if y_distance > 0:
-		# 		choice = (self.pos[0],self.pos[1]+1)
-		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-		# 			self.model.grid.move_agent(self,choice)
-		# 	else:
-		# 		choice = (self.pos[0],self.pos[1]-1)
-		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-		# 			self.model.grid.move_agent(self,choice)
+				else:
+					self.path = AStarSearch(self.pos, self.goal, model)
+					if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
+						self.model.grid.move_agent(self,self.path[0])
+						self.path.pop(0)
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
@@ -286,11 +267,12 @@ class DiseaseAgent(Agent):
 							if (self.diseaserate * 0.75) > self.random.random():
 								other.disease = self.disease
 
-	def mutate(self,):
+	def mutate(self):
 		"""Mutates disease in an agent."""
 		if self.disease > 0:
 			if self.mutateProb > self.random.random():
-				self.disease += 1
+				self.model.maxdisease += 1
+				self.disease = self.model.maxdisease
 
 	def cured(self):
 		"""Cure agents based on cure probability sick time."""
@@ -320,9 +302,9 @@ class wall(Agent):
 		super().__init__(unique_id, model)
 
 
-model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)])
+model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)],mutateProb=0.01)
 
-for i in range(100):
+for i in range(20):
 	print(i)
 	model.step()
 
