@@ -61,9 +61,10 @@ def disease_collector(model):
 			else:
 				disease_dict[agent.disease] = 1
 	# calculate sick percentage per disease
+	sum = 0
 	for mutation in disease_dict:
 		disease_dict[mutation] /= model.num_agents
-
+		sum += disease_dict[mutation]
 	return (total_sick/model.num_agents, disease_dict, n_mutations, social_dict)
 
 def AStarSearch(start, end, graph):
@@ -138,7 +139,7 @@ class DiseaseModel(Model):
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
-		self.maxDisease = 1
+		self.maxDisease = 0
 		# Check if agent fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
@@ -367,14 +368,13 @@ def disease_graph(model):
 		disease_plotter += [[]]
 	for j in range(len(mutation)):
 		for i in range(n_mutations):
-			if i in mutation[j]:
-				disease_plotter[i] += [mutation[j][i]]
+			if i+1 in mutation[j]:
+				disease_plotter[i] += [mutation[j][i+1]]
 			else:
 				disease_plotter[i] += [0]
-
 	# plot all diseases
 	for mutation in disease_plotter:
-		plt.plot(mutation, linestyle='dashed')
+		plt.plot(mutation) #linestyle='dashed')
 
 
 	plt.xlabel('Timesteps')
@@ -394,9 +394,9 @@ def disease_graph(model):
 
 
 
-model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)],mutateProb=0.001)
+model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)],mutateProb=0.005)
 
-for i in range(100):
+for i in range(20):
 	# print(i)
 	model.step()
 
