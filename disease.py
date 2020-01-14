@@ -99,7 +99,7 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, rooms, cureProb=0.1, cureProbFac=2, mutateProb=0.1):
+	def __init__(self, highS, middleS, lowS, width, height, rooms, cureProb=0.1, cureProbFac=2, mutateProb=0.001):
 		self.num_agents = highS + middleS + lowS
 		self.rooms = rooms
 		self.initialCureProb = cureProb
@@ -323,7 +323,7 @@ class wall(Agent):
 model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)])
 
 for i in range(100):
-	print(i)
+	# print(i)
 	model.step()
 
 
@@ -357,7 +357,7 @@ df = model.datacollector.get_model_vars_dataframe()
 diseased = []
 mutation = []
 n_mutations = 0
-print()
+print(df)
 for index, row in df.iterrows():
 	diseased += [row[0][0]]
 	mutation += [row[0][1]]
@@ -365,11 +365,12 @@ for index, row in df.iterrows():
 		n_mutations = row[0][2]
 
 
-plt.plot(diseased,color="red")
+plt.plot(diseased, color="red", label='total')
 
 
 disease_plotter = []
-for i in range(n_mutations):
+print('n_mut: ', n_mutations)
+for _ in range(n_mutations):
 	disease_plotter += [[]]
 for j in range(len(mutation)):
 	for i in range(n_mutations):
@@ -378,7 +379,13 @@ for j in range(len(mutation)):
 		else:
 			disease_plotter[i] += [0]
 
-for mutation in disease_plotter:
-	plt.plot(mutation)
+counter = 0
 
+for mutation in disease_plotter:
+	plt.plot(mutation, label='mutation ' + str(counter))
+	counter += 1
+
+plt.xlabel('Timesteps')
+plt.ylabel('Infected (%)')
+plt.legend()
 plt.show()
