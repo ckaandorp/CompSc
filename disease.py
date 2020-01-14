@@ -354,9 +354,9 @@ def disease_graph(model):
 	plt.show()
 
 	# plot agent sociability
-	plt.plot([x / model.num_agents for x in low_sociability], label='low ' + str(model.lowS))
-	plt.plot([x / model.num_agents for x in middle_sociability], label='middle ' + str(model.middleS))
-	plt.plot([x / model.num_agents for x in high_sociability], label='high ' + str(model.highS))
+	plt.plot([x / model.lowS for x in low_sociability], label='low ' + str(model.lowS))
+	plt.plot([x / model.middleS for x in middle_sociability], label='middle ' + str(model.middleS))
+	plt.plot([x / model.highS for x in high_sociability], label='high ' + str(model.highS))
 	plt.ylabel("Infected (%)")
 	plt.xlabel("Timesteps")
 	plt.legend()
