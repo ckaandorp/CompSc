@@ -7,6 +7,34 @@ import matplotlib.pyplot as plt
 import math
 
 
+def disease_spreader(cellmates,self,prob):
+	if len(cellmates) > 0:
+		for i in range(len(cellmates)):
+			other = cellmates[i]
+			if not isinstance(other, wall) and not isinstance(self, wall):
+				if self.disease not in other.resistent:
+					if not wall_in_the_way(self,other):
+					# if not glitched looped through the map.
+						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
+							if self.diseaserate * prob > self.random.random():
+								other.disease = self.disease
+
+def wall_in_the_way(self,other):
+	difference_x = self.pos[0] - other.pos[0]
+	difference_y = self.pos[1] - other .pos[1]
+	for i in range(abs(difference_x)):
+		if difference_x < 0:
+			i *= -1
+		cell = self.model.grid.get_neighborhood((self.pos[0]+i,self.pos[1]),moore=False, include_center=True, radius=0)
+		if cell != None and isinstance(cell,wall):
+			return True
+	for i in range(abs(difference_y)):
+		if difference_y < 0:
+			i *= -1
+		cell = self.model.grid.get_neighborhood((self.pos[0]+difference_x,self.pos[1]+i),moore=False, include_center=True, radius=0)
+		if cell != None and isinstance(cell,wall):
+			return True
+	return False
 def disease_collector(model):
 	"""
 	Collects disease data from a model.
@@ -129,14 +157,14 @@ class DiseaseModel(Model):
 		self.addAgents(highS, lowS + highS, 2)
 
 		self.datacollector = DataCollector(
-		model_reporters={"diseasepercentage": disease_collector},  # `compute_gini` defined above
-		agent_reporters={"disease": "disease"})
+			model_reporters={"diseasepercentage": disease_collector},  # `compute_gini` defined above
+			agent_reporters={"disease": "disease"})
 
 	def heuristic(self, start, goal):
-		#manhatan distance
+		# Manhatan distance
 		dx = abs(start[0] - goal[0])
 		dy = abs(start[1] - goal[1])
-		return dx+dy
+		return dx + dy
 
 	def get_vertex_neighbours(self, pos):
 		n = self.grid.get_neighborhood(pos, moore=False)
@@ -144,7 +172,7 @@ class DiseaseModel(Model):
 		for item in n:
 			if not abs(item[0]-pos[0]) > 1 and not abs(item[1]-pos[1]) > 1:
 				neighbours += [item]
-		#Moves allow link a chess king
+		# Moves allow link a chess king
 		return neighbours
 
 	def move_cost(self, a, b):
@@ -152,25 +180,27 @@ class DiseaseModel(Model):
 		# 	if b in barrier:
 		# 		return 100 #Extremely high cost to enter barrier squares
 		if model.grid.is_cell_empty(b):
-			return 1 #Normal movement cost
+			return 1 # Normal movement cost
 		else:
 			return 100
+
 	def addWalls(self, n, widthGrid, heightGrid):
 		# Add walls in grid
 		widthRooms = math.floor(widthGrid/n)
 		heightRooms = math.floor(heightGrid/n)
-
-		doorWidth = 4
-		for i in range(2):
+		widthHall = widthGrid - 2 * widthRooms
+		heightHall = heightGrid - 2 * heightRooms
+		for i in range(n - 1):
 			for y in range(heightRooms):
 				brick = wall(self.num_agents, self)
-				self.grid.place_agent(brick, ((i+1) * widthRooms, y))
-		doorNumber = 1
+				self.grid.place_agent(brick, ((i + 1) * widthRooms, y))
+				self.grid.place_agent(brick, ((i + 1) * widthRooms, y + heightRooms + heightHall))
+		doorWidth = 3
 		for x in range(widthGrid):
-			if (x % widthRooms) < (widthRooms - 5):
+			if (x % widthRooms) < (widthRooms - doorWidth):
 				brick = wall(self.num_agents, self)
 				self.grid.place_agent(brick, (x, heightRooms))
-
+				self.grid.place_agent(brick, (x, heightRooms + heightHall - 1))
 
 	def addAgents(self, n, startID, sociability):
 		# add n amount of agents with a sociability
@@ -180,7 +210,6 @@ class DiseaseModel(Model):
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
-
 
 	# Continue one step in simulation
 	def step(self):
@@ -257,20 +286,20 @@ class DiseaseAgent(Agent):
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
-		cellmates = self.model.grid.get_neighbors(self.pos,moore=True)
+		cellmates = set(self.model.grid.get_neighbors(self.pos,moore=True))
+		cellmates_2 = set(self.model.grid.get_neighbors(self.pos,moore=True,radius=2))
+		cellmates_3 = set(self.model.grid.get_neighbors(self.pos,moore=True,radius=3))
+		cellmates_4 = set(self.model.grid.get_neighbors(self.pos,moore=True,radius=4))
+		cellmates = list(cellmates)
+		cellmates_2 = list(cellmates_2.difference(cellmates))
+		cellmates_3 = list(cellmates_3.difference(cellmates_2))
+		cellmates_4 = list(cellmates_4.difference(cellmates_3))
 		# Check if there are neighbors to spread disease to
-		if len(cellmates) > 0:
-			for i in range(len(cellmates)):
-				other = cellmates[i]
-				if not isinstance(other, wall) and not isinstance(self, wall):
-					if self.disease not in other.resistent:
-						# if direct neighbor then normal infection probability, else lowered.
-						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) == 1:
-							if self.diseaserate > self.random.random():
-								other.disease = self.disease
-						else:
-							if (self.diseaserate * 0.75) > self.random.random():
-								other.disease = self.disease
+		disease_spreader(cellmates,self,1)
+		disease_spreader(cellmates_2,self,0.75)
+		disease_spreader(cellmates_3,self,0.5)
+		disease_spreader(cellmates_4,self,0.125)
+
 
 	def mutate(self):
 		"""Mutates disease in an agent."""
@@ -318,7 +347,7 @@ def disease_graph(model):
 	middle_sociability = []
 	high_sociability = []
 	n_mutations = 0
-	
+
 	for index, row in df.iterrows():
 		diseased += [row[0][0]]
 		mutation += [row[0][1]]
@@ -390,7 +419,7 @@ for cell in model.grid.coord_iter():
 	if agent != None and not isinstance(agent, wall):
 		agent_counts[x][y] = agent.goal[0]
 	elif agent != None and isinstance(agent, wall):
-		agent_counts[x][y] = -50
+		agent_counts[x][y] = -40
 	else:
 		agent_counts[x][y] = -5
 plt.imshow(agent_counts, interpolation='nearest')
