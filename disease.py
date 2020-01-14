@@ -17,11 +17,13 @@ def disease_collector(model):
 	"""
 	total_sick = 0
 	disease_dict = {}
+	social_dict = {'0':0, '1':0, '2':0}
 	n_mutations = 0
 	for agent in model.schedule.agents:
 		# check if agent has a disease
 		if agent.disease > 0:
 			total_sick += 1
+			social_dict[str(agent.sociability)] += 1
 			# update number of mutations
 			if agent.disease > n_mutations:
 				n_mutations = agent.disease
@@ -34,7 +36,7 @@ def disease_collector(model):
 	for mutation in disease_dict:
 		disease_dict[mutation] /= model.num_agents
 
-	return (total_sick/model.num_agents, disease_dict, n_mutations)
+	return (total_sick/model.num_agents, disease_dict, n_mutations, social_dict)
 
 def AStarSearch(start, end, graph):
 
@@ -99,12 +101,16 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, rooms, cureProb=0.1, cureProbFac=2, mutateProb=0.001):
+	def __init__(self, highS, middleS, lowS, width, height, rooms, cureProb=0.1, cureProbFac=2, mutateProb=0.0005):
 		self.num_agents = highS + middleS + lowS
+		self.lowS = lowS
+		self.middleS = middleS
+		self.highS = highS
 		self.rooms = rooms
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
+		self.maxDisease = 1
 		# Check if agent fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
@@ -134,11 +140,12 @@ class DiseaseModel(Model):
 
 	def get_vertex_neighbours(self, pos):
 		n = self.grid.get_neighborhood(pos, moore=False)
+		neighbours = []
 		for item in n:
-			if abs(item[0]-pos[0]) > 1 or abs(item[1]-pos[1]) > 1:
-				n.remove(item)
+			if not abs(item[0]-pos[0]) > 1 and not abs(item[1]-pos[1]) > 1:
+				neighbours += [item]
 		#Moves allow link a chess king
-		return n
+		return neighbours
 
 	def move_cost(self, a, b):
 		# for barrier in self.barriers:
@@ -194,6 +201,7 @@ class DiseaseAgent(Agent):
 		self.cureProbFac = self.model.cureProbFac
 		self.mutateProb = self.model.mutateProb
 		self.sickTime = 0
+		self.talking = 0.1
 		self.path = []
 		self.goal = self.model.rooms[self.random.randrange(len(self.model.rooms))]
 
@@ -201,10 +209,9 @@ class DiseaseAgent(Agent):
 		""" Moves agent one step on the grid."""
 		if not isinstance(self, wall):
 			cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
-
 			newCellmates = []
 			for cellmate in cellmates:
-				if not isinstance(cellmate, wall):
+				if not abs(cellmate.pos[0]-self.pos[0]) > 1 and not abs(cellmate.pos[1]-self.pos[1]) > 1 and not isinstance(cellmate, wall):
 					newCellmates += [cellmate]
 
 			# behavior based on sociability.
@@ -220,54 +227,33 @@ class DiseaseAgent(Agent):
 							self.model.grid.move_agent(self, choice)
 							return
 			# stop if talked to if middle sociability
-			if self.sociability == 1:
+			if self.sociability == 1 and self.random.random() > self.talking:
 				for neighbor in newCellmates:
 					if neighbor.sociability == 2:
+						self.talking *= 2
 						return
-			# stop to talk if there is a neighbor if high sociability
-			if self.sociability == 2:
-				if len(newCellmates) > 0:
-					return
-		# stop to talk if there is a neighbor if high sociability
-		if self.sociability == 2:
-			if len(cellmates) > 0:
-				return
-
-		if self.path == []:
-			self.path = AStarSearch(self.pos, self.goal, model)
-		if self.path != []:
-			if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
-				self.model.grid.move_agent(self,self.path[0])
-				self.path.pop(0)
 			else:
+				self.talking = 0.1
+
+			# stop to talk if there is a neighbor if high sociability
+			if self.sociability == 2  and self.random.random() > self.talking:
+				if len(cellmates) > 0:
+					self.talking *= 2
+					return
+			else:
+				self.talking = 0.1
+
+			if self.path == []:
 				self.path = AStarSearch(self.pos, self.goal, model)
+			if self.path != []:
 				if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
 					self.model.grid.move_agent(self,self.path[0])
 					self.path.pop(0)
-		# # goal based movement
-		# x_distance = self.goal[0] - self.pos[0]
-		# y_distance = self.goal[1] - self.pos[1]
-		# # takes a step in the direction that is farthest off the current position.
-		# # if more horizontal distance needs to be traveled.
-		# if abs(x_distance) >= abs(y_distance):
-		# 	if x_distance > 0:
-		# 		choice = (self.pos[0]+1,self.pos[1])
-		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-		# 			self.model.grid.move_agent(self,choice)
-		# 	else:
-		# 		choice = (self.pos[0]-1,self.pos[1])
-		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-		# 			self.model.grid.move_agent(self,choice)
-		# # if more vertical distance needs be traveled.
-		# else:
-		# 	if y_distance > 0:
-		# 		choice = (self.pos[0],self.pos[1]+1)
-		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-		# 			self.model.grid.move_agent(self,choice)
-		# 	else:
-		# 		choice = (self.pos[0],self.pos[1]-1)
-		# 		if 0 < choice[0] < model.grid.width and  0 < choice[1] < model.grid.height and model.grid.is_cell_empty(choice):
-		# 			self.model.grid.move_agent(self,choice)
+				else:
+					self.path = AStarSearch(self.pos, self.goal, model)
+					if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
+						self.model.grid.move_agent(self,self.path[0])
+						self.path.pop(0)
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
@@ -286,11 +272,12 @@ class DiseaseAgent(Agent):
 							if (self.diseaserate * 0.75) > self.random.random():
 								other.disease = self.disease
 
-	def mutate(self,):
+	def mutate(self):
 		"""Mutates disease in an agent."""
 		if self.disease > 0:
 			if self.mutateProb > self.random.random():
-				self.disease += 1
+				self.model.maxDisease += 1
+				self.disease = self.model.maxDisease
 
 	def cured(self):
 		"""Cure agents based on cure probability sick time."""
@@ -320,7 +307,65 @@ class wall(Agent):
 		super().__init__(unique_id, model)
 
 
-model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)])
+
+def disease_graph(model):
+	""""Plots progress of disease given a model"""
+	# get dataframe
+	df = model.datacollector.get_model_vars_dataframe()
+	diseased = []
+	mutation = []
+	low_sociability = []
+	middle_sociability = []
+	high_sociability = []
+	n_mutations = 0
+	
+	for index, row in df.iterrows():
+		diseased += [row[0][0]]
+		mutation += [row[0][1]]
+		sociability = row[0][3]
+		low_sociability += [sociability['0']]
+		middle_sociability += [sociability['1']]
+		high_sociability += [sociability['2']]
+		if row[0][2] > n_mutations:
+			n_mutations = row[0][2]
+
+	plt.plot(diseased, color="red", label='total')
+
+	# collect all diseases
+	disease_plotter = []
+
+	for _ in range(n_mutations):
+		disease_plotter += [[]]
+	for j in range(len(mutation)):
+		for i in range(n_mutations):
+			if i in mutation[j]:
+				disease_plotter[i] += [mutation[j][i]]
+			else:
+				disease_plotter[i] += [0]
+
+	# plot all diseases
+	for mutation in disease_plotter:
+		plt.plot(mutation, linestyle='dashed')
+
+
+	plt.xlabel('Timesteps')
+	plt.ylabel('Infected (%)')
+	plt.legend()
+	plt.show()
+
+	# plot agent sociability
+	plt.plot([x / model.num_agents for x in low_sociability], label='low ' + str(model.lowS))
+	plt.plot([x / model.num_agents for x in middle_sociability], label='middle ' + str(model.middleS))
+	plt.plot([x / model.num_agents for x in high_sociability], label='high ' + str(model.highS))
+	plt.ylabel("Infected (%)")
+	plt.xlabel("Timesteps")
+	plt.legend()
+	plt.show()
+
+
+
+
+model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)],mutateProb=0.001)
 
 for i in range(100):
 	# print(i)
@@ -352,40 +397,5 @@ plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
 plt.show()
 
-# get dataframe
-df = model.datacollector.get_model_vars_dataframe()
-diseased = []
-mutation = []
-n_mutations = 0
-print(df)
-for index, row in df.iterrows():
-	diseased += [row[0][0]]
-	mutation += [row[0][1]]
-	if row[0][2] > n_mutations:
-		n_mutations = row[0][2]
 
-
-plt.plot(diseased, color="red", label='total')
-
-
-disease_plotter = []
-print('n_mut: ', n_mutations)
-for _ in range(n_mutations):
-	disease_plotter += [[]]
-for j in range(len(mutation)):
-	for i in range(n_mutations):
-		if i in mutation[j]:
-			disease_plotter[i] += [mutation[j][i]]
-		else:
-			disease_plotter[i] += [0]
-
-counter = 0
-
-for mutation in disease_plotter:
-	plt.plot(mutation, label='mutation ' + str(counter))
-	counter += 1
-
-plt.xlabel('Timesteps')
-plt.ylabel('Infected (%)')
-plt.legend()
-plt.show()
+disease_graph(model)
