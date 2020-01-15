@@ -7,19 +7,19 @@ import matplotlib.pyplot as plt
 import math
 
 
-def disease_spreader(cellmates,self,prob):
+def disease_spreader(cellmates, self, prob):
 	if len(cellmates) > 0:
 		for i in range(len(cellmates)):
 			other = cellmates[i]
 			if not isinstance(other, wall) and not isinstance(self, wall):
 				if self.disease not in other.resistent:
-					if not wall_in_the_way(self,other):
+					if not wall_in_the_way(self, other):
 					# if not glitched looped through the map.
 						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
-							if self.diseaserate * prob > self.random.random():
+							if self.model.diseaseRate * prob > self.random.random():
 								other.disease = self.disease
 
-def wall_in_the_way(self,other):
+def wall_in_the_way(self, other):
 	difference_x = self.pos[0] - other.pos[0]
 	difference_y = self.pos[1] - other.pos[1]
 	for i in range(abs(difference_x)):
@@ -35,6 +35,7 @@ def wall_in_the_way(self,other):
 		if cell != None and isinstance(cell,wall):
 			return True
 	return False
+
 def disease_collector(model):
 	"""
 	Collects disease data from a model.
@@ -130,7 +131,7 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, roster, cureProb=0.1, cureProbFac=2, mutateProb=0.0005):
+	def __init__(self, highS, middleS, lowS, width, height, roster, cureProb=0.1, cureProbFac=2, mutateProb=0.0005, diseaseRate=0.38):
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
@@ -139,6 +140,7 @@ class DiseaseModel(Model):
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
+		self.diseaseRate = diseaseRate
 		self.maxDisease = 0
 		self.counter = 0
 		# Check if agent fit within grid
@@ -225,7 +227,6 @@ class DiseaseAgent(Agent):
 		super().__init__(unique_id, model)
 		# Randomly set agent as healthy or sick
 		self.disease = self.random.randrange(2)
-		self.diseaserate = 1
 		self.sociability = sociability
 		self.resistent = []
 		self.initialCureProb = self.model.initialCureProb
