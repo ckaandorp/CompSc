@@ -7,19 +7,19 @@ import matplotlib.pyplot as plt
 import math
 
 
-def disease_spreader(cellmates,self,prob):
+def disease_spreader(cellmates, self, prob):
 	if len(cellmates) > 0:
 		for i in range(len(cellmates)):
 			other = cellmates[i]
-			# if not glitched looped through the map.
-			if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
-				if not isinstance(other, wall) and not isinstance(self, wall):
-					if self.disease not in other.resistent:
-						if not wall_in_the_way(self,other):
-								if self.diseaserate * prob > self.random.random():
-									other.disease = self.disease
+			if not isinstance(other, wall) and not isinstance(self, wall):
+				if self.disease not in other.resistent:
+					if not wall_in_the_way(self, other):
+					# if not glitched looped through the map.
+						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
+							if self.model.diseaseRate * prob > self.random.random():
+								other.disease = self.disease
 
-def wall_in_the_way(self,other):
+def wall_in_the_way(self, other):
 	difference_x = self.pos[0] - other.pos[0]
 	difference_y = self.pos[1] - other.pos[1]
 	for i in range(abs(difference_x)):
@@ -35,6 +35,7 @@ def wall_in_the_way(self,other):
 		if cell != None and isinstance(cell,wall):
 			return True
 	return False
+
 def disease_collector(model):
 	"""
 	Collects disease data from a model.
@@ -130,7 +131,7 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, roster, cureProb=0.1, cureProbFac=2, mutateProb=0.0005):
+	def __init__(self, highS, middleS, lowS, width, height, roster, cureProb=0.1, cureProbFac=2, mutateProb=0.0005, diseaseRate=0.38):
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
@@ -139,6 +140,7 @@ class DiseaseModel(Model):
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
+		self.diseaseRate = diseaseRate
 		self.maxDisease = 0
 		self.counter = 0
 		# Check if agent fit within grid
@@ -223,13 +225,9 @@ class DiseaseAgent(Agent):
 		super().__init__(unique_id, model)
 		# Randomly set agent as healthy or sick
 		self.disease = self.random.randrange(2)
-		self.diseaserate = 1
 		self.sociability = sociability
 		self.resistent = []
-		self.initialCureProb = self.model.initialCureProb
-		self.cureProb = self.initialCureProb
-		self.cureProbFac = self.model.cureProbFac
-		self.mutateProb = self.model.mutateProb
+		self.cureProb = self.model.initialCureProb
 		self.sickTime = 0
 		self.talking = 0.1
 		self.path = []
@@ -324,7 +322,7 @@ class DiseaseAgent(Agent):
 	def mutate(self):
 		"""Mutates disease in an agent."""
 		if self.disease > 0:
-			if self.mutateProb > self.random.random():
+			if self.model.mutateProb > self.random.random():
 				self.model.maxDisease += 1
 				self.disease = self.model.maxDisease
 
@@ -336,10 +334,10 @@ class DiseaseAgent(Agent):
 				self.resistent += [self.disease]
 				self.disease = 0
 				self.sickTime = 0
-				self.cureProb = self.initialCureProb
+				self.cureProb = self.model.initialCureProb
 				print(self.resistent)
 			else:
-				self.cureProb *= self.cureProbFac
+				self.cureProb *= self.model.cureProbFac
 
 	def step(self):
 		"""Move and spread disease if sick."""
@@ -405,9 +403,9 @@ def disease_graph(model):
 	plt.show()
 
 	# plot agent sociability
-	plt.plot([x / model.num_agents for x in low_sociability], label='low ' + str(model.lowS))
-	plt.plot([x / model.num_agents for x in middle_sociability], label='middle ' + str(model.middleS))
-	plt.plot([x / model.num_agents for x in high_sociability], label='high ' + str(model.highS))
+	plt.plot([x / model.lowS for x in low_sociability], label='low ' + str(model.lowS))
+	plt.plot([x / model.middleS for x in middle_sociability], label='middle ' + str(model.middleS))
+	plt.plot([x / model.highS for x in high_sociability], label='high ' + str(model.highS))
 	plt.ylabel("Infected (%)")
 	plt.xlabel("Timesteps")
 	plt.legend()
