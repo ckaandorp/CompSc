@@ -7,19 +7,19 @@ import matplotlib.pyplot as plt
 import math
 
 
-def disease_spreader(cellmates,self,prob):
+def disease_spreader(cellmates, self, prob):
 	if len(cellmates) > 0:
 		for i in range(len(cellmates)):
 			other = cellmates[i]
 			if not isinstance(other, wall) and not isinstance(self, wall):
 				if self.disease not in other.resistent:
-					if not wall_in_the_way(self,other):
+					if not wall_in_the_way(self, other):
 					# if not glitched looped through the map.
 						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
-							if self.diseaserate * prob > self.random.random():
+							if self.model.diseaseRate * prob > self.random.random():
 								other.disease = self.disease
 
-def wall_in_the_way(self,other):
+def wall_in_the_way(self, other):
 	difference_x = self.pos[0] - other.pos[0]
 	difference_y = self.pos[1] - other.pos[1]
 	for i in range(abs(difference_x)):
@@ -131,7 +131,7 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, cureProb=0.1, cureProbFac=2, mutateProb=0.0005):
+	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2, mutateProb=0.0005, diseaseRate=0.38):
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
@@ -139,6 +139,7 @@ class DiseaseModel(Model):
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
+		self.diseaseRate = diseaseRate
 		self.maxDisease = 0
 		self.counter = 0
 		# Check if agent fit within grid
@@ -149,21 +150,22 @@ class DiseaseModel(Model):
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
 
-		# Create walls
-		numberRooms = 3
-		self.addWalls(numberRooms, width, height)
-		midWidthRoom = math.floor(width / numberRooms / 2)
-		midHeightRoom = math.floor(height / numberRooms / 2)
+		if edu_setting:
+			# Create walls
+			numberRooms = 3
+			self.addWalls(numberRooms, width, height)
+			midWidthRoom = math.floor(width / numberRooms / 2)
+			midHeightRoom = math.floor(height / numberRooms / 2)
 
-		roomLeftDown = (5 * midWidthRoom, midHeightRoom)
-		roomLeftMid = (3 * midWidthRoom, midHeightRoom)
-		roomLeftUp = (midWidthRoom, midHeightRoom)
-		roomRightDown = (5 * midWidthRoom, 5 * midHeightRoom, )
-		roomRightMid = (3 * midWidthRoom, 5 * midHeightRoom)
-		roomRightUp = (midWidthRoom, 5 * midHeightRoom)
+			roomLeftDown = (5 * midWidthRoom, midHeightRoom)
+			roomLeftMid = (3 * midWidthRoom, midHeightRoom)
+			roomLeftUp = (midWidthRoom, midHeightRoom)
+			roomRightDown = (5 * midWidthRoom, 5 * midHeightRoom, )
+			roomRightMid = (3 * midWidthRoom, 5 * midHeightRoom)
+			roomRightUp = (midWidthRoom, 5 * midHeightRoom)
 
-		self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown], 
-							[roomRightUp, roomRightDown, roomLeftUp]]
+			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown], 
+								[roomRightUp, roomRightDown, roomLeftUp]]
 
 		# Create agents
 		self.addAgents(lowS, 0, 0)
@@ -234,18 +236,25 @@ class DiseaseAgent(Agent):
 		super().__init__(unique_id, model)
 		# Randomly set agent as healthy or sick
 		self.disease = self.random.randrange(2)
-		self.diseaserate = 1
 		self.sociability = sociability
 		self.resistent = []
-		self.initialCureProb = self.model.initialCureProb
-		self.cureProb = self.initialCureProb
-		self.cureProbFac = self.model.cureProbFac
-		self.mutateProb = self.model.mutateProb
+		self.cureProb = self.model.initialCureProb
 		self.sickTime = 0
 		self.talking = 0.1
 		self.path = []
-		self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
-		self.goal = self.roster[0]
+		if self.model.roster != []:
+			self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
+			self.goal = self.roster[0]
+
+	def random_move(self):
+		""" Moves agent one step on the grid."""
+		possible_steps = self.model.grid.get_neighborhood(
+			self.pos,
+			moore=False,
+			include_center=True)
+		choice = self.random.choice(possible_steps)
+		if model.grid.is_cell_empty(choice):
+			self.model.grid.move_agent(self, choice)
 
 	def move(self):
 		""" Moves agent one step on the grid."""
@@ -324,7 +333,7 @@ class DiseaseAgent(Agent):
 	def mutate(self):
 		"""Mutates disease in an agent."""
 		if self.disease > 0:
-			if self.mutateProb > self.random.random():
+			if self.model.mutateProb > self.random.random():
 				self.model.maxDisease += 1
 				self.disease = self.model.maxDisease
 
@@ -336,14 +345,17 @@ class DiseaseAgent(Agent):
 				self.resistent += [self.disease]
 				self.disease = 0
 				self.sickTime = 0
-				self.cureProb = self.initialCureProb
+				self.cureProb = self.model.initialCureProb
 				print(self.resistent)
 			else:
-				self.cureProb *= self.cureProbFac
+				self.cureProb *= self.model.cureProbFac
 
 	def step(self):
 		"""Move and spread disease if sick."""
-		self.move()
+		if self.model.roster == []:
+			self.random_move()
+		else:
+			self.move()
 		if self.disease >= 1:
 			self.sickTime += 1
 			self.mutate()
@@ -402,9 +414,9 @@ def disease_graph(model):
 	plt.show()
 
 	# plot agent sociability
-	plt.plot([x / model.num_agents for x in low_sociability], label='low ' + str(model.lowS))
-	plt.plot([x / model.num_agents for x in middle_sociability], label='middle ' + str(model.middleS))
-	plt.plot([x / model.num_agents for x in high_sociability], label='high ' + str(model.highS))
+	plt.plot([x / model.lowS for x in low_sociability], label='low ' + str(model.lowS))
+	plt.plot([x / model.middleS for x in middle_sociability], label='middle ' + str(model.middleS))
+	plt.plot([x / model.highS for x in high_sociability], label='high ' + str(model.highS))
 	plt.ylabel("Infected (%)")
 	plt.xlabel("Timesteps")
 	plt.legend()
@@ -413,9 +425,9 @@ def disease_graph(model):
 
 
 
-model = DiseaseModel(10, 10, 10, 50, 50, mutateProb=0.005)
+model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=True, mutateProb=0.005)
 
-for i in range(500):
+for i in range(50):
 	print(i)
 	model.step()
 
