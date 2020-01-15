@@ -7,8 +7,14 @@ import matplotlib.pyplot as plt
 import math
 
 
-def disease_spreader(cellmates, self, prob):
-	"""Calculates spread of disease to all cellmates."""
+def disease_spreader(cellmates, self, distanceFac):
+	"""
+	Calculates spread of disease to all cellmates.
+	cellmates: list of all objects surrounding the agent
+	self: current agent object
+	distanceFac: factor to multiply the disease spreading rate with based on 
+				 distance between distance.
+	"""
 	if len(cellmates) > 0:
 		# check all cellmates
 		for i in range(len(cellmates)):
@@ -21,7 +27,7 @@ def disease_spreader(cellmates, self, prob):
 					if not wall_in_the_way(self, other):
 					# ignore agents on other side of map
 						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
-							if self.model.diseaseRate * prob > self.random.random():
+							if self.model.diseaseRate * distanceFac > self.random.random():
 								other.disease = self.disease
 
 def wall_in_the_way(self, other):
@@ -145,7 +151,7 @@ class DiseaseModel(Model):
 	mutateProb: Probability of a disease mutating.
 	diseaseRate: Rate at which the disease spreads.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2, mutateProb=0.0005, diseaseRate=0.38):
+	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0005, diseaseRate=0.38):
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
@@ -444,7 +450,7 @@ def disease_graph(model):
 
 model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
 
-for i in range(50):
+for i in range(30000):
 	print(i)
 	model.step()
 
