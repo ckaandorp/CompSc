@@ -35,6 +35,7 @@ def wall_in_the_way(self,other):
 		if cell != None and isinstance(cell,wall):
 			return True
 	return False
+
 def disease_collector(model):
 	"""
 	Collects disease data from a model.
@@ -130,12 +131,11 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, roster, cureProb=0.1, cureProbFac=2, mutateProb=0.0005):
+	def __init__(self, highS, middleS, lowS, width, height, cureProb=0.1, cureProbFac=2, mutateProb=0.0005):
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
 		self.highS = highS
-		self.roster = roster
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
@@ -152,6 +152,18 @@ class DiseaseModel(Model):
 		# Create walls
 		numberRooms = 3
 		self.addWalls(numberRooms, width, height)
+		midWidthRoom = math.floor(width / numberRooms / 2)
+		midHeightRoom = math.floor(height / numberRooms / 2)
+
+		roomLeftDown = (5 * midWidthRoom, midHeightRoom)
+		roomLeftMid = (3 * midWidthRoom, midHeightRoom)
+		roomLeftUp = (midWidthRoom, midHeightRoom)
+		roomRightDown = (5 * midWidthRoom, 5 * midHeightRoom, )
+		roomRightMid = (3 * midWidthRoom, 5 * midHeightRoom)
+		roomRightUp = (midWidthRoom, 5 * midHeightRoom)
+
+		self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown], 
+							[roomRightUp, roomRightDown, roomLeftUp]]
 
 		# Create agents
 		self.addAgents(lowS, 0, 0)
@@ -178,9 +190,6 @@ class DiseaseModel(Model):
 		return neighbours
 
 	def move_cost(self, a, b):
-		# for barrier in self.barriers:
-		# 	if b in barrier:
-		# 		return 100 #Extremely high cost to enter barrier squares
 		if model.grid.is_cell_empty(b):
 			return 1 # Normal movement cost
 		else:
@@ -197,7 +206,7 @@ class DiseaseModel(Model):
 				brick = wall(self.num_agents, self)
 				self.grid.place_agent(brick, ((i + 1) * widthRooms, y))
 				self.grid.place_agent(brick, ((i + 1) * widthRooms, y + heightRooms + heightHall))
-		doorWidth = 3
+		doorWidth = 2
 		for x in range(widthGrid):
 			if (x % widthRooms) < (widthRooms - doorWidth):
 				brick = wall(self.num_agents, self)
@@ -404,9 +413,9 @@ def disease_graph(model):
 
 
 
-model = DiseaseModel(10, 10, 10, 50, 50,[[(0,0),(25,0),(49,0)],[(0,49),(49,0),(25,25)],[(49,0),(25,0),(0,0)]],mutateProb=0.005)
+model = DiseaseModel(10, 10, 10, 50, 50, mutateProb=0.005)
 
-for i in range(100):
+for i in range(500):
 	print(i)
 	model.step()
 
