@@ -21,7 +21,7 @@ def disease_spreader(cellmates,self,prob):
 
 def wall_in_the_way(self,other):
 	difference_x = self.pos[0] - other.pos[0]
-	difference_y = self.pos[1] - other .pos[1]
+	difference_y = self.pos[1] - other.pos[1]
 	for i in range(abs(difference_x)):
 		if difference_x < 0:
 			i *= -1
@@ -130,16 +130,17 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, rooms, cureProb=0.1, cureProbFac=2, mutateProb=0.0005):
+	def __init__(self, highS, middleS, lowS, width, height, roster, cureProb=0.1, cureProbFac=2, mutateProb=0.0005):
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
 		self.highS = highS
-		self.rooms = rooms
+		self.roster = roster
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
 		self.maxDisease = 0
+		self.counter = 0
 		# Check if agent fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
@@ -214,6 +215,7 @@ class DiseaseModel(Model):
 
 	# Continue one step in simulation
 	def step(self):
+		self.counter += 1
 		self.datacollector.collect(self)
 		self.schedule.step()
 
@@ -233,10 +235,18 @@ class DiseaseAgent(Agent):
 		self.sickTime = 0
 		self.talking = 0.1
 		self.path = []
-		self.goal = self.model.rooms[self.random.randrange(len(self.model.rooms))]
+		self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
+		self.goal = self.roster[0]
 
 	def move(self):
 		""" Moves agent one step on the grid."""
+		if self.model.counter > 60:
+			self.goal = self.roster[1]
+			self.path = []
+		elif self.model.counter > 120:
+			self.goal = self.roster[2]
+			self.path = []
+
 		if not isinstance(self, wall):
 			cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
 			newCellmates = []
@@ -394,10 +404,10 @@ def disease_graph(model):
 
 
 
-model = DiseaseModel(10, 10, 10, 25, 25,[(0,0),(12,0),(24,0)],mutateProb=0.005)
+model = DiseaseModel(10, 10, 10, 50, 50,[[(0,0),(25,0),(49,0)],[(0,49),(49,0),(25,25)],[(49,0),(25,0),(0,0)]],mutateProb=0.005)
 
-for i in range(20):
-	# print(i)
+for i in range(100):
+	print(i)
 	model.step()
 
 
