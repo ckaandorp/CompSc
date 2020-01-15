@@ -11,13 +11,13 @@ def disease_spreader(cellmates,self,prob):
 	if len(cellmates) > 0:
 		for i in range(len(cellmates)):
 			other = cellmates[i]
-			if not isinstance(other, wall) and not isinstance(self, wall):
-				if self.disease not in other.resistent:
-					if not wall_in_the_way(self,other):
-					# if not glitched looped through the map.
-						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
-							if self.diseaserate * prob > self.random.random():
-								other.disease = self.disease
+			# if not glitched looped through the map.
+			if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
+				if not isinstance(other, wall) and not isinstance(self, wall):
+					if self.disease not in other.resistent:
+						if not wall_in_the_way(self,other):
+								if self.diseaserate * prob > self.random.random():
+									other.disease = self.disease
 
 def wall_in_the_way(self,other):
 	difference_x = self.pos[0] - other.pos[0]
@@ -150,8 +150,9 @@ class DiseaseModel(Model):
 		self.schedule = RandomActivation(self)
 
 		# Create walls
-		numberRooms = 3
-		self.addWalls(numberRooms, width, height)
+		if roster != []:
+			numberRooms = 3
+			self.addWalls(numberRooms, width, height)
 
 		# Create agents
 		self.addAgents(lowS, 0, 0)
@@ -178,9 +179,6 @@ class DiseaseModel(Model):
 		return neighbours
 
 	def move_cost(self, a, b):
-		# for barrier in self.barriers:
-		# 	if b in barrier:
-		# 		return 100 #Extremely high cost to enter barrier squares
 		if model.grid.is_cell_empty(b):
 			return 1 # Normal movement cost
 		else:
@@ -235,8 +233,19 @@ class DiseaseAgent(Agent):
 		self.sickTime = 0
 		self.talking = 0.1
 		self.path = []
-		self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
-		self.goal = self.roster[0]
+		if self.model.roster != []:
+			self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
+			self.goal = self.roster[0]
+
+	def random_move(self):
+		""" Moves agent one step on the grid."""
+		possible_steps = self.model.grid.get_neighborhood(
+			self.pos,
+			moore=False,
+			include_center=True)
+		choice = self.random.choice(possible_steps)
+		if model.grid.is_cell_empty(choice):
+			self.model.grid.move_agent(self, choice)
 
 	def move(self):
 		""" Moves agent one step on the grid."""
@@ -334,7 +343,10 @@ class DiseaseAgent(Agent):
 
 	def step(self):
 		"""Move and spread disease if sick."""
-		self.move()
+		if self.model.roster == []:
+			self.random_move()
+		else:
+			self.move()
 		if self.disease >= 1:
 			self.sickTime += 1
 			self.mutate()
@@ -403,8 +415,8 @@ def disease_graph(model):
 
 
 
-
-model = DiseaseModel(10, 10, 10, 50, 50,[[(0,0),(25,0),(49,0)],[(0,49),(49,0),(25,25)],[(49,0),(25,0),(0,0)]],mutateProb=0.005)
+#[[(0,0),(25,0),(49,0)],[(0,49),(49,0),(25,25)],[(49,0),(25,0),(0,0)]]
+model = DiseaseModel(10, 10, 10, 50, 50,[],mutateProb=0.005)
 
 for i in range(100):
 	print(i)
