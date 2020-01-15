@@ -9,17 +9,22 @@ import math
 
 def disease_spreader(cellmates, self, prob):
 	if len(cellmates) > 0:
+		# check all cellmates
 		for i in range(len(cellmates)):
 			other = cellmates[i]
+			# ignore agents that are walls
 			if not isinstance(other, wall) and not isinstance(self, wall):
+				# check resistence of other agent
 				if self.disease not in other.resistent:
+					# disease will not be spread if a wall blocks the path
 					if not wall_in_the_way(self, other):
-					# if not glitched looped through the map.
+					# ignore agents on other side of map
 						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
 							if self.model.diseaseRate * prob > self.random.random():
 								other.disease = self.disease
 
 def wall_in_the_way(self, other):
+	"""Check if there is a wall between agents."""
 	difference_x = self.pos[0] - other.pos[0]
 	difference_y = self.pos[1] - other.pos[1]
 	for i in range(abs(difference_x)):
@@ -414,7 +419,7 @@ def disease_graph(model):
 
 
 #[[(0,0),(25,0),(49,0)],[(0,49),(49,0),(25,25)],[(49,0),(25,0),(0,0)]]
-model = DiseaseModel(10, 10, 10, 50, 50,[],mutateProb=0.005)
+model = DiseaseModel(10, 10, 10, 50, 50,[], mutateProb=0.005)
 
 for i in range(100):
 	print(i)
