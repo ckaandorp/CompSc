@@ -154,6 +154,7 @@ class DiseaseModel(Model):
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
 		self.diseaseRate = diseaseRate
+		self.edu_setting = edu_setting
 		self.maxDisease = 0 # amount of mutations
 		self.counter = 0 # keeps track of timesteps
 
@@ -258,7 +259,7 @@ class DiseaseAgent(Agent):
 		self.sickTime = 0
 		self.talking = 0.1
 		self.path = []
-		if self.model.roster != []:
+		if self.model.edu_setting == True:
 			self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
 			self.goal = self.roster[0]
 
@@ -368,7 +369,7 @@ class DiseaseAgent(Agent):
 
 	def step(self):
 		"""Move and spread disease if sick."""
-		if self.model.roster == []:
+		if self.model.edu_setting == False:
 			self.random_move()
 		else:
 			self.move()
@@ -441,7 +442,7 @@ def disease_graph(model):
 
 
 
-model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=True, mutateProb=0.005)
+model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
 
 for i in range(50):
 	print(i)
@@ -461,17 +462,6 @@ plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
 plt.show()
 
-for cell in model.grid.coord_iter():
-	agent, x, y = cell
-	if agent != None and not isinstance(agent, wall):
-		agent_counts[x][y] = agent.goal[0]
-	elif agent != None and isinstance(agent, wall):
-		agent_counts[x][y] = -40
-	else:
-		agent_counts[x][y] = -5
-plt.imshow(agent_counts, interpolation='nearest')
-plt.colorbar()
-plt.show()
 
 
 disease_graph(model)
