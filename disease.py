@@ -136,12 +136,11 @@ class DiseaseModel(Model):
 	width: Width of the grid.
 	height: Height of the grid.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, roster, cureProb=0.1, cureProbFac=2, mutateProb=0.0005, diseaseRate=0.38):
+	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2, mutateProb=0.0005, diseaseRate=0.38):
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
 		self.highS = highS
-		self.roster = roster
 		self.initialCureProb = cureProb
 		self.cureProbFac = cureProbFac
 		self.mutateProb = mutateProb
@@ -156,10 +155,22 @@ class DiseaseModel(Model):
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
 
-		# Create walls
-		if roster != []:
+		if edu_setting:
+			# Create walls
 			numberRooms = 3
 			self.addWalls(numberRooms, width, height)
+			midWidthRoom = math.floor(width / numberRooms / 2)
+			midHeightRoom = math.floor(height / numberRooms / 2)
+
+			roomLeftDown = (5 * midWidthRoom, midHeightRoom)
+			roomLeftMid = (3 * midWidthRoom, midHeightRoom)
+			roomLeftUp = (midWidthRoom, midHeightRoom)
+			roomRightDown = (5 * midWidthRoom, 5 * midHeightRoom, )
+			roomRightMid = (3 * midWidthRoom, 5 * midHeightRoom)
+			roomRightUp = (midWidthRoom, 5 * midHeightRoom)
+
+			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown], 
+								[roomRightUp, roomRightDown, roomLeftUp]]
 
 		# Create agents
 		self.addAgents(lowS, 0, 0)
@@ -202,7 +213,7 @@ class DiseaseModel(Model):
 				brick = wall(self.num_agents, self)
 				self.grid.place_agent(brick, ((i + 1) * widthRooms, y))
 				self.grid.place_agent(brick, ((i + 1) * widthRooms, y + heightRooms + heightHall))
-		doorWidth = 3
+		doorWidth = 2
 		for x in range(widthGrid):
 			if (x % widthRooms) < (widthRooms - doorWidth):
 				brick = wall(self.num_agents, self)
@@ -418,10 +429,10 @@ def disease_graph(model):
 
 
 
-#[[(0,0),(25,0),(49,0)],[(0,49),(49,0),(25,25)],[(49,0),(25,0),(0,0)]]
-model = DiseaseModel(10, 10, 10, 50, 50,[], mutateProb=0.005)
 
-for i in range(100):
+model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=True, mutateProb=0.005)
+
+for i in range(50):
 	print(i)
 	model.step()
 
