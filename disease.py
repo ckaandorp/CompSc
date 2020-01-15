@@ -229,10 +229,7 @@ class DiseaseAgent(Agent):
 		self.disease = self.random.randrange(2)
 		self.sociability = sociability
 		self.resistent = []
-		self.initialCureProb = self.model.initialCureProb
-		self.cureProb = self.initialCureProb
-		self.cureProbFac = self.model.cureProbFac
-		self.mutateProb = self.model.mutateProb
+		self.cureProb = self.model.initialCureProb
 		self.sickTime = 0
 		self.talking = 0.1
 		self.path = []
@@ -316,7 +313,7 @@ class DiseaseAgent(Agent):
 	def mutate(self):
 		"""Mutates disease in an agent."""
 		if self.disease > 0:
-			if self.mutateProb > self.random.random():
+			if self.model.mutateProb > self.random.random():
 				self.model.maxDisease += 1
 				self.disease = self.model.maxDisease
 
@@ -328,10 +325,10 @@ class DiseaseAgent(Agent):
 				self.resistent += [self.disease]
 				self.disease = 0
 				self.sickTime = 0
-				self.cureProb = self.initialCureProb
+				self.cureProb = self.model.initialCureProb
 				print(self.resistent)
 			else:
-				self.cureProb *= self.cureProbFac
+				self.cureProb *= self.model.cureProbFac
 
 	def step(self):
 		"""Move and spread disease if sick."""
