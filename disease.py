@@ -191,8 +191,8 @@ class DiseaseModel(Model):
 			roomRightMid = (3 * midWidthRoom, 5 * midHeightRoom)
 			roomRightUp = (midWidthRoom, 5 * midHeightRoom)
 
-			# Set goals 
-			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown], 
+			# Set goals
+			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown],
 							[roomRightUp, roomRightDown, roomLeftUp]]
 
 		# Create agents
@@ -201,11 +201,11 @@ class DiseaseModel(Model):
 		self.addAgents(highS, lowS + highS, 2)
 
 		self.datacollector = DataCollector(
-			model_reporters={"diseasepercentage": disease_collector}, 
+			model_reporters={"diseasepercentage": disease_collector},
 			agent_reporters={"disease": "disease"})
 
 	def heuristic(self, start, goal):
-		""" 
+		"""
 		Returns manhattan distance.
 		start: current location (x,y)
 		goal: goal location (x,y)
@@ -233,7 +233,7 @@ class DiseaseModel(Model):
 			return 100
 
 	def add_walls(self, n, widthGrid, heightGrid):
-		""" 
+		"""
 		Add walls in grid.
 		n: number of rooms vertically
 		widthGrid: width of the grid
@@ -258,8 +258,8 @@ class DiseaseModel(Model):
 				self.grid.place_agent(brick, (x, heightRooms + heightHall - 1))
 
 	def addAgents(self, n, startID, sociability):
-		""" 
-		Add agents with a sociability. 
+		"""
+		Add agents with a sociability.
 		n: number of agents
 		startID: ID of the first added agent
 		sociability: sociability of the agents
@@ -308,7 +308,7 @@ class DiseaseAgent(Agent):
 			self.model.grid.move_agent(self, choice)
 
 	def move(self):
-		""" 
+		"""
 		Moves agent one step on the grid.
 		"""
 		if self.model.counter > 200:
@@ -356,14 +356,14 @@ class DiseaseAgent(Agent):
 
 			if self.pos != self.goal:
 				if self.path == []:
-					self.path = AStarSearch(self.pos, self.goal, model)
+					self.path = AStarSearch(self.pos, self.goal, self.model)
 				if self.path != []:
-					if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
+					if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
 						self.model.grid.move_agent(self,self.path[0])
 						self.path.pop(0)
 					else:
-						self.path = AStarSearch(self.pos, self.goal, model)
-						if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
+						self.path = AStarSearch(self.pos, self.goal, self.model)
+						if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
 							self.model.grid.move_agent(self, self.path[0])
 							self.path.pop(0)
 
