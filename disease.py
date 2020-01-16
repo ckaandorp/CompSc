@@ -4,7 +4,8 @@ from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 import numpy as np
 import matplotlib.pyplot as plt
-import math
+from math import floor
+from random import randint
 
 
 def disease_spreader(cellmates, self, prob):
@@ -78,7 +79,7 @@ def disease_collector(model):
 	return (total_sick/model.num_agents, disease_dict, n_mutations, social_dict)
 
 def AStarSearch(start, end, graph):
-
+	""" Code from: https://rosettacode.org/wiki/A*_search_algorithm#Python """
 	G = {} #Actual movement cost to each position from the start position
 	F = {} #Estimated movement cost of start to end going via this position
 
@@ -169,10 +170,13 @@ class DiseaseModel(Model):
 		if edu_setting:
 			# Create walls
 			numberRooms = 3
-			self.addWalls(numberRooms, width, height)
-			midWidthRoom = math.floor(width / numberRooms / 2)
-			midHeightRoom = math.floor(height / numberRooms / 2)
+			self.add_walls(numberRooms, width, height)
+			midWidthRoom = floor(width / numberRooms / 2)
+			midHeightRoom = floor(height / numberRooms / 2)
+			self.midWidthRoom = midWidthRoom
+			self.midHeightRoom = midHeightRoom
 
+			# Calculate the middlepoints of the 6 rooms
 			roomLeftDown = (5 * midWidthRoom, midHeightRoom)
 			roomLeftMid = (3 * midWidthRoom, midHeightRoom)
 			roomLeftUp = (midWidthRoom, midHeightRoom)
@@ -182,7 +186,7 @@ class DiseaseModel(Model):
 
 			# Set goals 
 			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown], 
-								[roomRightUp, roomRightDown, roomLeftUp]]
+							[roomRightUp, roomRightDown, roomLeftUp]]
 
 		# Create agents
 		self.addAgents(lowS, 0, 0)
@@ -190,23 +194,30 @@ class DiseaseModel(Model):
 		self.addAgents(highS, lowS + highS, 2)
 
 		self.datacollector = DataCollector(
-			model_reporters={"diseasepercentage": disease_collector},  # `compute_gini` defined above
+			model_reporters={"diseasepercentage": disease_collector}, 
 			agent_reporters={"disease": "disease"})
 
 	def heuristic(self, start, goal):
-		# Manhatan distance
+		""" 
+		Returns manhattan distance.
+		start: current location (x,y)
+		goal: goal location (x,y)
+		"""
 		dx = abs(start[0] - goal[0])
 		dy = abs(start[1] - goal[1])
 		return dx + dy
 
 	def get_vertex_neighbours(self, pos):
+		"""
+		Returns all neighbors.
+		pos: current position
+		"""
 		n = self.grid.get_neighborhood(pos, moore=False)
-		neighbours = []
+		neighbors = []
 		for item in n:
 			if not abs(item[0]-pos[0]) > 1 and not abs(item[1]-pos[1]) > 1:
-				neighbours += [item]
-		# Moves allow link a chess king
-		return neighbours
+				neighbors += [item]
+		return neighbors
 
 	def move_cost(self, a, b):
 		if model.grid.is_cell_empty(b):
@@ -214,18 +225,25 @@ class DiseaseModel(Model):
 		else:
 			return 100
 
-	def addWalls(self, n, widthGrid, heightGrid):
-		# Add walls in grid
-		widthRooms = math.floor(widthGrid/n)
-		heightRooms = math.floor(heightGrid/n)
+	def add_walls(self, n, widthGrid, heightGrid):
+		""" 
+		Add walls in grid.
+		n: number of rooms vertically
+		widthGrid: width of the grid
+		heightGrid: height of the grid
+		"""
+		widthRooms = floor(widthGrid/n)
+		heightRooms = floor(heightGrid/n)
 		widthHall = widthGrid - 2 * widthRooms
 		heightHall = heightGrid - 2 * heightRooms
+		# Add horizontal walls
 		for i in range(n - 1):
 			for y in range(heightRooms):
 				brick = wall(self.num_agents, self)
 				self.grid.place_agent(brick, ((i + 1) * widthRooms, y))
 				self.grid.place_agent(brick, ((i + 1) * widthRooms, y + heightRooms + heightHall))
 		doorWidth = 2
+		# Add vertical walls
 		for x in range(widthGrid):
 			if (x % widthRooms) < (widthRooms - doorWidth):
 				brick = wall(self.num_agents, self)
@@ -233,7 +251,12 @@ class DiseaseModel(Model):
 				self.grid.place_agent(brick, (x, heightRooms + heightHall - 1))
 
 	def addAgents(self, n, startID, sociability):
-		# add n amount of agents with a sociability
+		""" 
+		Add agents with a sociability. 
+		n: number of agents
+		startID: ID of the first added agent
+		sociability: sociability of the agents
+		"""
 		for i in range(n):
 			a = DiseaseAgent(i + startID, sociability, self)
 			self.schedule.add(a)
@@ -241,8 +264,8 @@ class DiseaseModel(Model):
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
 
-	# Continue one step in simulation
 	def step(self):
+		""" Continue one step in simulation. """
 		self.counter += 1
 		self.datacollector.collect(self)
 		self.schedule.step()
@@ -261,7 +284,7 @@ class DiseaseAgent(Agent):
 		self.path = []
 		if self.model.edu_setting == True:
 			self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
-			self.goal = self.roster[0]
+			self.goal = (self.roster[0][0] + randint(-self.model.midWidthRoom - 1, self.model.midWidthRoom - 1), self.roster[0][1] + randint(-self.model.midHeightRoom - 1, self.model.midHeightRoom - 1))
 
 	def random_move(self):
 		""" Moves agent one step on the grid."""
@@ -274,12 +297,14 @@ class DiseaseAgent(Agent):
 			self.model.grid.move_agent(self, choice)
 
 	def move(self):
-		""" Moves agent one step on the grid."""
-		if self.model.counter > 60:
-			self.goal = self.roster[1]
+		""" 
+		Moves agent one step on the grid.
+		"""
+		if self.model.counter > 200:
+			self.goal = (self.roster[1][0] + randint(-self.model.midWidthRoom - 1, self.model.midWidthRoom - 1), self.roster[1][1] + randint(-self.model.midHeightRoom - 1, self.model.midHeightRoom - 1))
 			self.path = []
-		elif self.model.counter > 120:
-			self.goal = self.roster[2]
+		elif self.model.counter > 400:
+			self.goal = (self.roster[2][0] + randint(-self.model.midWidthRoom - 1, self.model.midWidthRoom - 1), self.roster[2][1] + randint(-self.model.midHeightRoom - 1, self.model.midHeightRoom - 1))
 			self.path = []
 
 		if not isinstance(self, wall):
@@ -318,17 +343,18 @@ class DiseaseAgent(Agent):
 			else:
 				self.talking = 0.1
 
-			if self.path == []:
-				self.path = AStarSearch(self.pos, self.goal, model)
-			if self.path != []:
-				if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
-					self.model.grid.move_agent(self,self.path[0])
-					self.path.pop(0)
-				else:
+			if self.pos != self.goal:
+				if self.path == []:
 					self.path = AStarSearch(self.pos, self.goal, model)
+				if self.path != []:
 					if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
 						self.model.grid.move_agent(self,self.path[0])
 						self.path.pop(0)
+					else:
+						self.path = AStarSearch(self.pos, self.goal, model)
+						if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
+							self.model.grid.move_agent(self, self.path[0])
+							self.path.pop(0)
 
 	def spread_disease(self):
 		"""Spreads disease to neighbors."""
@@ -346,7 +372,6 @@ class DiseaseAgent(Agent):
 		disease_spreader(cellmates_3,self,0.5)
 		disease_spreader(cellmates_4,self,0.125)
 
-
 	def mutate(self):
 		"""Mutates disease in an agent."""
 		if self.disease > 0:
@@ -363,7 +388,6 @@ class DiseaseAgent(Agent):
 				self.disease = 0
 				self.sickTime = 0
 				self.cureProb = self.model.initialCureProb
-				print(self.resistent)
 			else:
 				self.cureProb *= self.model.cureProbFac
 
@@ -379,15 +403,15 @@ class DiseaseAgent(Agent):
 			self.spread_disease()
 			self.cured()
 
+
 class wall(Agent):
 	"""A wall seperating the spaces."""
 	def __init__(self, unique_id, model):
 		super().__init__(unique_id, model)
 
 
-
 def disease_graph(model):
-	""""Plots progress of disease given a model"""
+	""""Plots progress of disease given a model."""
 	# get dataframe
 	df = model.datacollector.get_model_vars_dataframe()
 	diseased = []
@@ -424,7 +448,6 @@ def disease_graph(model):
 	for mutation in disease_plotter:
 		plt.plot(mutation) #linestyle='dashed')
 
-
 	plt.xlabel('Timesteps')
 	plt.ylabel('Infected (%)')
 	plt.legend()
@@ -440,11 +463,9 @@ def disease_graph(model):
 	plt.show()
 
 
+model = DiseaseModel(10, 10, 10, 20, 40, edu_setting=True, mutateProb=0.005)
 
-
-model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
-
-for i in range(50):
+for i in range(199):
 	print(i)
 	model.step()
 
@@ -457,11 +478,10 @@ for cell in model.grid.coord_iter():
 	elif agent != None and isinstance(agent, wall):
 		agent_counts[x][y] = 5
 	else:
-		agent_counts[x][y] = -1
+		agent_counts[x][y] = -10
 plt.imshow(agent_counts, interpolation='nearest')
 plt.colorbar()
 plt.show()
-
 
 
 disease_graph(model)
