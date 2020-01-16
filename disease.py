@@ -152,6 +152,7 @@ class DiseaseModel(Model):
 	diseaseRate: Rate at which the disease spreads.
 	"""
 	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0005, diseaseRate=0.38):
+		super().__init__()
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
