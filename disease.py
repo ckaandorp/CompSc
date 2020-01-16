@@ -137,6 +137,7 @@ class DiseaseModel(Model):
 	height: Height of the grid.
 	"""
 	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2, mutateProb=0.0005, diseaseRate=0.38):
+		super().__init__()
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
@@ -198,7 +199,7 @@ class DiseaseModel(Model):
 		return neighbours
 
 	def move_cost(self, a, b):
-		if model.grid.is_cell_empty(b):
+		if self.grid.is_cell_empty(b):
 			return 1 # Normal movement cost
 		else:
 			return 100
@@ -258,8 +259,12 @@ class DiseaseAgent(Agent):
 			self.pos,
 			moore=False,
 			include_center=True)
-		choice = self.random.choice(possible_steps)
-		if model.grid.is_cell_empty(choice):
+		possible_steps_real = []
+		for cell in possible_steps:
+			if not abs(cell[0]-self.pos[0]) > 1 and not abs(cell[1]-self.pos[1]) > 1:
+				possible_steps_real += [cell]
+		choice = self.random.choice(possible_steps_real)
+		if self.model.grid.is_cell_empty(choice):
 			self.model.grid.move_agent(self, choice)
 
 	def move(self):
@@ -287,7 +292,7 @@ class DiseaseAgent(Agent):
 					escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
 					choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
 					if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
-						if model.grid.is_cell_empty(choice):
+						if self.model.grid.is_cell_empty(choice):
 							self.model.grid.move_agent(self, choice)
 							return
 			# stop if talked to if middle sociability
@@ -308,14 +313,14 @@ class DiseaseAgent(Agent):
 				self.talking = 0.1
 
 			if self.path == []:
-				self.path = AStarSearch(self.pos, self.goal, model)
+				self.path = AStarSearch(self.pos, self.goal, self.model)
 			if self.path != []:
-				if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
+				if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
 					self.model.grid.move_agent(self,self.path[0])
 					self.path.pop(0)
 				else:
-					self.path = AStarSearch(self.pos, self.goal, model)
-					if self.path != [-1] and model.grid.is_cell_empty(self.path[0]):
+					self.path = AStarSearch(self.pos, self.goal, self.model)
+					if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
 						self.model.grid.move_agent(self,self.path[0])
 						self.path.pop(0)
 
@@ -371,6 +376,7 @@ class DiseaseAgent(Agent):
 class wall(Agent):
 	"""A wall seperating the spaces."""
 	def __init__(self, unique_id, model):
+		self.disease = -1
 		super().__init__(unique_id, model)
 
 
@@ -431,26 +437,26 @@ def disease_graph(model):
 
 
 
-model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
+# model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
+#
+# for i in range(300):
+# 	print(i)
+# 	model.step()
 
-for i in range(50):
-	print(i)
-	model.step()
-
-
-agent_counts = np.zeros((model.grid.width, model.grid.height))
-for cell in model.grid.coord_iter():
-	agent, x, y = cell
-	if agent != None and not isinstance(agent, wall):
-		agent_counts[x][y] = agent.disease
-	elif agent != None and isinstance(agent, wall):
-		agent_counts[x][y] = 5
-	else:
-		agent_counts[x][y] = -1
-plt.imshow(agent_counts, interpolation='nearest')
-plt.colorbar()
-plt.show()
-
-
-
-disease_graph(model)
+#
+# agent_counts = np.zeros((model.grid.width, model.grid.height))
+# for cell in model.grid.coord_iter():
+# 	agent, x, y = cell
+# 	if agent != None and not isinstance(agent, wall):
+# 		agent_counts[x][y] = agent.disease
+# 	elif agent != None and isinstance(agent, wall):
+# 		agent_counts[x][y] = 5
+# 	else:
+# 		agent_counts[x][y] = -1
+# plt.imshow(agent_counts, interpolation='nearest')
+# plt.colorbar()
+# plt.show()
+#
+#
+#
+# disease_graph(model)
