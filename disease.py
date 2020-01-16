@@ -8,8 +8,14 @@ from math import floor
 from random import randint
 
 
-def disease_spreader(cellmates, self, prob):
-	"""Calculates spread of disease to all cellmates."""
+def disease_spreader(cellmates, self, distanceFac):
+	"""
+	Calculates spread of disease to all cellmates.
+	cellmates: list of all objects surrounding the agent
+	self: current agent object
+	distanceFac: factor to multiply the disease spreading rate with based on
+				 distance between distance.
+	"""
 	if len(cellmates) > 0:
 		# check all cellmates
 		for i in range(len(cellmates)):
@@ -22,7 +28,7 @@ def disease_spreader(cellmates, self, prob):
 					if not wall_in_the_way(self, other):
 					# ignore agents on other side of map
 						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
-							if self.model.diseaseRate * prob > self.random.random():
+							if self.model.diseaseRate * distanceFac > self.random.random():
 								other.disease = self.disease
 
 def wall_in_the_way(self, other):
@@ -146,7 +152,7 @@ class DiseaseModel(Model):
 	mutateProb: Probability of a disease mutating.
 	diseaseRate: Rate at which the disease spreads.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2, mutateProb=0.0005, diseaseRate=0.38):
+	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0005, diseaseRate=0.38):
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
@@ -220,7 +226,7 @@ class DiseaseModel(Model):
 		return neighbors
 
 	def move_cost(self, a, b):
-		if model.grid.is_cell_empty(b):
+		if self.grid.is_cell_empty(b):
 			return 1 # Normal movement cost
 		else:
 			return 100
@@ -292,8 +298,12 @@ class DiseaseAgent(Agent):
 			self.pos,
 			moore=False,
 			include_center=True)
-		choice = self.random.choice(possible_steps)
-		if model.grid.is_cell_empty(choice):
+		possible_steps_real = []
+		for cell in possible_steps:
+			if not abs(cell[0]-self.pos[0]) > 1 and not abs(cell[1]-self.pos[1]) > 1:
+				possible_steps_real += [cell]
+		choice = self.random.choice(possible_steps_real)
+		if self.model.grid.is_cell_empty(choice):
 			self.model.grid.move_agent(self, choice)
 
 	def move(self):
@@ -323,7 +333,7 @@ class DiseaseAgent(Agent):
 					escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
 					choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
 					if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
-						if model.grid.is_cell_empty(choice):
+						if self.model.grid.is_cell_empty(choice):
 							self.model.grid.move_agent(self, choice)
 							return
 			# stop if talked to if middle sociability
@@ -407,6 +417,7 @@ class DiseaseAgent(Agent):
 class wall(Agent):
 	"""A wall seperating the spaces."""
 	def __init__(self, unique_id, model):
+		self.disease = -1
 		super().__init__(unique_id, model)
 
 
@@ -463,25 +474,28 @@ def disease_graph(model):
 	plt.show()
 
 
-model = DiseaseModel(10, 10, 10, 20, 40, edu_setting=True, mutateProb=0.005)
-
-for i in range(199):
-	print(i)
-	model.step()
 
 
-agent_counts = np.zeros((model.grid.width, model.grid.height))
-for cell in model.grid.coord_iter():
-	agent, x, y = cell
-	if agent != None and not isinstance(agent, wall):
-		agent_counts[x][y] = agent.disease
-	elif agent != None and isinstance(agent, wall):
-		agent_counts[x][y] = 5
-	else:
-		agent_counts[x][y] = -10
-plt.imshow(agent_counts, interpolation='nearest')
-plt.colorbar()
-plt.show()
+# model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
+#
+# for i in range(300):
+# 	print(i)
+# 	model.step()
 
-
-disease_graph(model)
+#
+# agent_counts = np.zeros((model.grid.width, model.grid.height))
+# for cell in model.grid.coord_iter():
+# 	agent, x, y = cell
+# 	if agent != None and not isinstance(agent, wall):
+# 		agent_counts[x][y] = agent.disease
+# 	elif agent != None and isinstance(agent, wall):
+# 		agent_counts[x][y] = 5
+# 	else:
+# 		agent_counts[x][y] = -1
+# plt.imshow(agent_counts, interpolation='nearest')
+# plt.colorbar()
+# plt.show()
+#
+#
+#
+# disease_graph(model)
