@@ -7,36 +7,43 @@ import matplotlib.pyplot as plt
 import math
 
 
-def disease_spreader(cellmates, self, prob):
+def disease_spreader(cellmates, self, distanceFac):
+	"""
+	Calculates spread of disease to all cellmates.
+	cellmates: list of all objects surrounding the agent
+	self: current agent object
+	distanceFac: factor to multiply the disease spreading rate with based on
+				 distance between distance.
+	"""
 	if len(cellmates) > 0:
 		# check all cellmates
 		for i in range(len(cellmates)):
 			other = cellmates[i]
 			# ignore agents that are walls
 			if not isinstance(other, wall) and not isinstance(self, wall):
-				# check resistence of other agent
+				# check resistance of other agent
 				if self.disease not in other.resistent:
 					# disease will not be spread if a wall blocks the path
 					if not wall_in_the_way(self, other):
 					# ignore agents on other side of map
 						if (abs(self.pos[0] - other.pos[0]) + abs(self.pos[1] - other.pos[1])) > 5:
-							if self.model.diseaseRate * prob > self.random.random():
+							if self.model.diseaseRate * distanceFac > self.random.random():
 								other.disease = self.disease
 
 def wall_in_the_way(self, other):
-	"""Check if there is a wall between agents."""
+	"""Returns True if there is a wall between agents, else false."""
 	difference_x = self.pos[0] - other.pos[0]
 	difference_y = self.pos[1] - other.pos[1]
 	for i in range(abs(difference_x)):
 		if difference_x < 0:
 			i *= -1
-		cell = self.model.grid.get_neighborhood((self.pos[0]+i,self.pos[1]),moore=False, include_center=True, radius=0)
+		cell = self.model.grid.get_neighborhood((self.pos[0] + i,self.pos[1]), moore=False, include_center=True, radius=0)
 		if cell != None and isinstance(cell,wall):
 			return True
 	for i in range(abs(difference_y)):
 		if difference_y < 0:
 			i *= -1
-		cell = self.model.grid.get_neighborhood((self.pos[0]+difference_x,self.pos[1]+i),moore=False, include_center=True, radius=0)
+		cell = self.model.grid.get_neighborhood((self.pos[0]+difference_x, self.pos[1]+i), moore=False, include_center=True, radius=0)
 		if cell != None and isinstance(cell,wall):
 			return True
 	return False
@@ -46,8 +53,9 @@ def disease_collector(model):
 	Collects disease data from a model.
 	Returns:
 	the total percentage of agents that are sick,
-	dictionary containting how many agents are suffering from each disease and
-	number of different mutations.
+	dictionary containting how many agents are suffering from each disease,
+	number of different mutations and
+	dictionary containing how many agents of each social group are sick.
 	"""
 	total_sick = 0
 	disease_dict = {}
@@ -66,11 +74,13 @@ def disease_collector(model):
 				disease_dict[agent.disease] += 1
 			else:
 				disease_dict[agent.disease] = 1
+
 	# calculate sick percentage per disease
 	sum = 0
 	for mutation in disease_dict:
 		disease_dict[mutation] /= model.num_agents
 		sum += disease_dict[mutation]
+
 	return (total_sick/model.num_agents, disease_dict, n_mutations, social_dict)
 
 def AStarSearch(start, end, graph):
@@ -135,9 +145,13 @@ class DiseaseModel(Model):
 	lowS: Number of agents with low sociability.
 	width: Width of the grid.
 	height: Height of the grid.
+	edu_setting: Classrooms and set schedule if true, else random free movement.
+	cureProb: Probability of agent getting better.
+	cureProbFac: Factor of cureProb getting higher.
+	mutateProb: Probability of a disease mutating.
+	diseaseRate: Rate at which the disease spreads.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2, mutateProb=0.0005, diseaseRate=0.38):
-		super().__init__()
+	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0005, diseaseRate=0.38):
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
 		self.middleS = middleS
@@ -147,9 +161,10 @@ class DiseaseModel(Model):
 		self.mutateProb = mutateProb
 		self.diseaseRate = diseaseRate
 		self.edu_setting = edu_setting
-		self.maxDisease = 0
-		self.counter = 0
-		# Check if agent fit within grid
+		self.maxDisease = 0 # amount of mutations
+		self.counter = 0 # keeps track of timesteps
+
+		# Check if agents fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
 
@@ -171,6 +186,7 @@ class DiseaseModel(Model):
 			roomRightMid = (3 * midWidthRoom, 5 * midHeightRoom)
 			roomRightUp = (midWidthRoom, 5 * midHeightRoom)
 
+			# Set goals
 			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown],
 								[roomRightUp, roomRightDown, roomLeftUp]]
 
