@@ -84,7 +84,7 @@ class DiseaseModel(Model):
 		dy = abs(start[1] - goal[1])
 		return dx + dy
 
-	def get_vertex_neighbours(self, pos):
+	def get_vertex_neighbors(self, pos):
 		"""
 		Returns all neighbors.
 		pos: current position
