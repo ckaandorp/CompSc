@@ -120,6 +120,7 @@ class DiseaseAgent(Agent):
 				self.model.maxDisease += 1
 				self.resistent += [self.disease]
 				self.disease = self.model.maxDisease
+				self.sickTime = 0
 
 
 	def cured(self):
