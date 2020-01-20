@@ -5,10 +5,10 @@ from helperFunctions import *
 
 class DiseaseAgent(Agent):
 	""" An agent with fixed initial disease."""
-	def __init__(self, unique_id, sociability, model):
+	def __init__(self, unique_id, sociability, model, disease):
 		super().__init__(unique_id, model)
 		# Randomly set agent as healthy or sick
-		self.disease = self.random.randrange(2)
+		self.disease = disease
 		self.sociability = sociability
 		self.resistent = []
 		self.cureProb = self.model.initialCureProb
