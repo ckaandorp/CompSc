@@ -135,12 +135,14 @@ class DiseaseModel(Model):
 		startID: ID of the first added agent
 		sociability: sociability of the agents
 		"""
+		disease_list = np.random.randint(0, 2, n)
 		for i in range(n):
-			a = DiseaseAgent(i + startID, sociability, self)
+			a = DiseaseAgent(i + startID, sociability, self, disease_list[i])
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
+
 	def step(self):
 		""" Continue one step in simulation. """
 		self.counter += 1
