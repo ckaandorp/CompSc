@@ -2,8 +2,8 @@
 Simulation of the spread of the common cold when looking at social interactions.
 
 This repostory consists of the following files,
-Disease.py
-DiseaseAgent.py
+disease.py
+diseaseAgent.py
 helperFunctions.py
 visualization.py
 wall.py
