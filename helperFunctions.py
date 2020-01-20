@@ -113,19 +113,19 @@ def AStarSearch(start, end, graph):
 		closedVertices.add(current)
 
 		#Update scores for vertices near the current position
-		for neighbour in graph.get_vertex_neighbours(current):
-			if neighbour in closedVertices:
+		for neighbor in graph.get_vertex_neighbors(current):
+			if neighbor in closedVertices:
 				continue #We have already processed this node exhaustively
-			candidateG = G[current] + graph.move_cost(current, neighbour)
+			candidateG = G[current] + graph.move_cost(current, neighbor)
 
-			if neighbour not in openVertices:
-				openVertices.add(neighbour) #Discovered a new vertex
-			elif candidateG >= G[neighbour]:
+			if neighbor not in openVertices:
+				openVertices.add(neighbor) #Discovered a new vertex
+			elif candidateG >= G[neighbor]:
 				continue #This G score is worse than previously found
 
 			#Adopt this G score
-			cameFrom[neighbour] = current
-			G[neighbour] = candidateG
-			H = graph.heuristic(neighbour, end)
-			F[neighbour] = G[neighbour] + H
+			cameFrom[neighbor] = current
+			G[neighbor] = candidateG
+			H = graph.heuristic(neighbor, end)
+			F[neighbor] = G[neighbor] + H
 	return [-1]

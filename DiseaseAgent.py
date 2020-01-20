@@ -18,7 +18,7 @@ class DiseaseAgent(Agent):
 		self.talkedto = False
 		if self.model.edu_setting == True:
 			self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
-			self.goal = (self.roster[0][0] + randint(-self.model.midWidthRoom - 1, self.model.midWidthRoom - 1), self.roster[0][1] + randint(-self.model.midHeightRoom - 1, self.model.midHeightRoom - 1))
+			self.goal = (self.roster[0][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[0][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
 
 	def random_move(self):
 		""" Moves agent one step on the grid."""
@@ -39,10 +39,10 @@ class DiseaseAgent(Agent):
 		Moves agent one step on the grid.
 		"""
 		if self.model.counter > 200:
-			self.goal = (self.roster[1][0] + randint(-self.model.midWidthRoom - 1, self.model.midWidthRoom - 1), self.roster[1][1] + randint(-self.model.midHeightRoom - 1, self.model.midHeightRoom - 1))
+			self.goal = (self.roster[1][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[1][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
 			self.path = []
 		elif self.model.counter > 400:
-			self.goal = (self.roster[2][0] + randint(-self.model.midWidthRoom - 1, self.model.midWidthRoom - 1), self.roster[2][1] + randint(-self.model.midHeightRoom - 1, self.model.midHeightRoom - 1))
+			self.goal = (self.roster[2][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[2][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
 			self.path = []
 
 		if not isinstance(self, wall):
