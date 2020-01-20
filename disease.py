@@ -22,7 +22,7 @@ class DiseaseModel(Model):
 	mutateProb: Probability of a disease mutating.
 	diseaseRate: Rate at which the disease spreads.
 	"""
-	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0005, diseaseRate=0.38):
+	def __init__(self, highS, middleS, lowS, width, height, edu_setting=True, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050, diseaseRate=0.38):
 		super().__init__()
 		self.num_agents = highS + middleS + lowS
 		self.lowS = lowS
@@ -140,7 +140,6 @@ class DiseaseModel(Model):
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
-
 	def step(self):
 		""" Continue one step in simulation. """
 		self.counter += 1
@@ -148,13 +147,14 @@ class DiseaseModel(Model):
 		self.schedule.step()
 
 
-# model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
-#
-# for i in range(300):
-# 	print(i)
-# 	model.step()
+model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
 
-#
+for i in range(300):
+	print(i)
+	model.step()
+
+disease_graph(model)
+
 # agent_counts = np.zeros((model.grid.width, model.grid.height))
 # for cell in model.grid.coord_iter():
 # 	agent, x, y = cell
@@ -167,7 +167,3 @@ class DiseaseModel(Model):
 # plt.imshow(agent_counts, interpolation='nearest')
 # plt.colorbar()
 # plt.show()
-#
-#
-#
-# disease_graph(model)

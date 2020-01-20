@@ -15,6 +15,7 @@ class DiseaseAgent(Agent):
 		self.sickTime = 0
 		self.talking = 0.1
 		self.path = []
+		self.talkedto = False
 		if self.model.edu_setting == True:
 			self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
 			self.goal = (self.roster[0][0] + randint(-self.model.midWidthRoom - 1, self.model.midWidthRoom - 1), self.roster[0][1] + randint(-self.model.midHeightRoom - 1, self.model.midHeightRoom - 1))
@@ -67,15 +68,18 @@ class DiseaseAgent(Agent):
 			if self.sociability == 1 and self.random.random() > self.talking:
 				for neighbor in newCellmates:
 					if neighbor.sociability == 2:
-						self.talking *= 2
+						if self.talkedto != neighbor:
+							self.talking *= 1.5
+							self.talkedto = neighbor
 						return
 			else:
 				self.talking = 0.1
 
 			# stop to talk if there is a neighbor if high sociability
 			if self.sociability == 2  and self.random.random() > self.talking:
-				if len(cellmates) > 0:
-					self.talking *= 2
+				if len(newCellmates) > 0 and self.talkedto != newCellmates[0]:
+					self.talking *= 1.5
+					self.talkedto = newCellmates[0]
 					return
 			else:
 				self.talking = 0.1
