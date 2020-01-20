@@ -1,7 +1,7 @@
 from mesa import Agent
-# from random import randint
 from wall import wall
 from helperFunctions import *
+from math import floor
 
 class DiseaseAgent(Agent):
 	""" An agent with fixed initial disease."""
@@ -38,13 +38,15 @@ class DiseaseAgent(Agent):
 		"""
 		Moves agent one step on the grid.
 		"""
-		if self.model.counter > 200:
+		if 400 > self.model.counter > 200:
 			self.goal = (self.roster[1][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[1][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
 			self.path = []
-		elif self.model.counter > 400:
+		elif 540 > self.model.counter > 400:
 			self.goal = (self.roster[2][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[2][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
 			self.path = []
-
+		elif self.model.counter > 540:
+			self.goal = self.model.exit
+			self.path = []
 		if not isinstance(self, wall):
 			cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
 			newCellmates = []
@@ -122,7 +124,10 @@ class DiseaseAgent(Agent):
 				self.disease = self.model.maxDisease
 				self.sickTime = 0
 
-
+	def go_home(self):
+		if self.pos == self.model.exit:
+			self.model.removed += [self]
+			self.model.grid.remove_agent(self)
 	def cured(self):
 		"""Cure agents based on cure probability sick time."""
 		if self.sickTime > 10080: # people are generally sick for at least 1 week (60 * 24 * 7 = 10080)
@@ -137,12 +142,15 @@ class DiseaseAgent(Agent):
 
 	def step(self):
 		"""Move and spread disease if sick."""
-		if self.model.edu_setting == False:
-			self.random_move()
-		else:
-			self.move()
+		if self.model.counter%1440 > 540 and self.model.counter%1440 < 1020  and self.pos != None:
+			if self.model.edu_setting == False:
+				self.random_move()
+			else:
+				self.move()
+				self.go_home()
 		if self.disease >= 1:
 			self.sickTime += 1
 			self.mutate()
-			self.spread_disease()
+			if self.model.counter%1440 > 540 and self.model.counter%1440 < 1020 and self.pos != None:
+				self.spread_disease()
 			self.cured()

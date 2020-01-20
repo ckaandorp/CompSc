@@ -34,9 +34,10 @@ class DiseaseModel(Model):
 		self.mutateProb = mutateProb
 		self.diseaseRate = diseaseRate
 		self.edu_setting = edu_setting
-		self.maxDisease = 0 # amount of mutations
-		self.counter = 0 # keeps track of timesteps
-
+		self.maxDisease = 0# amount of mutations
+		self.counter = 540 # keeps track of timesteps
+		self.removed = []
+		self.exit = (width-1,floor(height/2))
 		# Check if agents fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
@@ -135,18 +136,15 @@ class DiseaseModel(Model):
 		startID: ID of the first added agent
 		sociability: sociability of the agents
 		"""
-		disease_list = np.random.randint(0, 2, n)
+		disease_list = np.random.randint(0,2,n)
 		for i in range(n):
-			a = DiseaseAgent(i + startID, sociability, self, disease_list[i])
+			a = DiseaseAgent(i + startID, sociability,self,disease_list[i])
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
-
 	def step(self):
 		""" Continue one step in simulation. """
 		self.counter += 1
 		self.datacollector.collect(self)
 		self.schedule.step()
-
-
