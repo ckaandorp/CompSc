@@ -58,14 +58,14 @@ def disease_graph(model):
 	plt.show()
 
 
-color_array = ["#0000FE","#FF00FA","#00FFF5","#0000F0","#0000EE","#0000EA","#0000E5","#0000E0"]
+color_array = ["#000000","#F2F3AE","#00171F","#003459","#007EA7","#00A8E8"]
 def agent_portrayal(agent):
 	portrayal = {"Filled": "true","Layer": 0,
 						"r": 0.5}
 	if agent.disease > -1:
 			portrayal["Shape"] = "circle"
 			portrayal["r"] = 1
-			portrayal["Color"] = color_array[agent.disease]
+			portrayal["Color"] = color_array[agent.disease % len(color_array)]
 	# portrayal["r"] = 0.5
 	else:
 		portrayal["Shape"] = "rect"
