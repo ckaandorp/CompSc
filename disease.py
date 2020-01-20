@@ -54,12 +54,12 @@ class DiseaseModel(Model):
 			self.midHeightRoom = floor(height / numberRooms / 2)
 
 			# Calculate the centers of the 6 rooms
-			roomLeftDown = (5 * midWidthRoom, midHeightRoom)
-			roomLeftMid = (3 * midWidthRoom, midHeightRoom)
-			roomLeftUp = (midWidthRoom, midHeightRoom)
-			roomRightDown = (5 * midWidthRoom, 5 * midHeightRoom, )
-			roomRightMid = (3 * midWidthRoom, 5 * midHeightRoom)
-			roomRightUp = (midWidthRoom, 5 * midHeightRoom)
+			roomLeftDown = (5 * self.midWidthRoom, self.midHeightRoom)
+			roomLeftMid = (3 * self.midWidthRoom, self.midHeightRoom)
+			roomLeftUp = (self.midWidthRoom, self.midHeightRoom)
+			roomRightDown = (5 * self.midWidthRoom, 5 * self.midHeightRoom, )
+			roomRightMid = (3 * self.midWidthRoom, 5 * self.midHeightRoom)
+			roomRightUp = (self.midWidthRoom, 5 * self.midHeightRoom)
 
 			# Set 3 goals per roster
 			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown],
