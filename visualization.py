@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 
 
 def disease_graph(model):
-	""""Plots progress of disease given a model."""
+	""""
+	Plots progress of disease given a model.
+	"""
 	# get dataframe
 	df = model.datacollector.get_model_vars_dataframe()
 	diseased = []

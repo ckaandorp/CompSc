@@ -42,7 +42,7 @@ class DiseaseModel(Model):
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
 
-		# make grid with random activation.
+		# Create grid with random activation
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
 
@@ -50,12 +50,10 @@ class DiseaseModel(Model):
 			# Create walls
 			numberRooms = 3
 			self.add_walls(numberRooms, width, height)
-			midWidthRoom = floor(width / numberRooms / 2)
-			midHeightRoom = floor(height / numberRooms / 2)
-			self.midWidthRoom = midWidthRoom
-			self.midHeightRoom = midHeightRoom
+			self.midWidthRoom = floor(width / numberRooms / 2)
+			self.midHeightRoom = floor(height / numberRooms / 2)
 
-			# Calculate the middlepoints of the 6 rooms
+			# Calculate the centers of the 6 rooms
 			roomLeftDown = (5 * midWidthRoom, midHeightRoom)
 			roomLeftMid = (3 * midWidthRoom, midHeightRoom)
 			roomLeftUp = (midWidthRoom, midHeightRoom)
@@ -63,7 +61,7 @@ class DiseaseModel(Model):
 			roomRightMid = (3 * midWidthRoom, 5 * midHeightRoom)
 			roomRightUp = (midWidthRoom, 5 * midHeightRoom)
 
-			# Set goals
+			# Set 3 goals per roster
 			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown],
 							[roomRightUp, roomRightDown, roomLeftUp]]
 
@@ -98,8 +96,11 @@ class DiseaseModel(Model):
 				neighbors += [item]
 		return neighbors
 
-	def move_cost(self, a, b):
-		if self.grid.is_cell_empty(b):
+	def move_cost(self, location):
+		"""
+		Return the cost of a location.
+		"""
+		if self.grid.is_cell_empty(location):
 			return 1 # Normal movement cost
 		else:
 			return 100
@@ -107,7 +108,7 @@ class DiseaseModel(Model):
 	def add_walls(self, n, widthGrid, heightGrid):
 		"""
 		Add walls in grid.
-		n: number of rooms vertically
+		n: number of rooms horizontally
 		widthGrid: width of the grid
 		heightGrid: height of the grid
 		"""
@@ -144,7 +145,9 @@ class DiseaseModel(Model):
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
 	def step(self):
-		""" Continue one step in simulation. """
+		"""
+		Continue one step in simulation.
+		"""
 		self.counter += 1
 		self.datacollector.collect(self)
 		self.schedule.step()
