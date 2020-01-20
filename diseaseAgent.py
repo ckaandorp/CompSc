@@ -119,6 +119,7 @@ class DiseaseAgent(Agent):
 			if self.model.mutateProb > self.random.random():
 				self.model.maxDisease += 1
 				self.disease = self.model.maxDisease
+				self.sickTime = 0
 
 	def cured(self):
 		"""Cure agents based on cure probability sick time."""
