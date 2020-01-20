@@ -4,9 +4,10 @@ from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 import numpy as np
 from math import floor
-from DiseaseAgent import DiseaseAgent
-from Wall import wall
+from diseaseAgent import DiseaseAgent
+from wall import wall
 from helperFunctions import disease_collector
+
 
 class DiseaseModel(Model):
 	"""
@@ -147,23 +148,3 @@ class DiseaseModel(Model):
 		self.schedule.step()
 
 
-model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
-
-for i in range(300):
-	print(i)
-	model.step()
-
-disease_graph(model)
-
-# agent_counts = np.zeros((model.grid.width, model.grid.height))
-# for cell in model.grid.coord_iter():
-# 	agent, x, y = cell
-# 	if agent != None and not isinstance(agent, wall):
-# 		agent_counts[x][y] = agent.disease
-# 	elif agent != None and isinstance(agent, wall):
-# 		agent_counts[x][y] = 5
-# 	else:
-# 		agent_counts[x][y] = -1
-# plt.imshow(agent_counts, interpolation='nearest')
-# plt.colorbar()
-# plt.show()
