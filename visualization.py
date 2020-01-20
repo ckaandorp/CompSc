@@ -3,29 +3,7 @@ from mesa.visualization.ModularVisualization import ModularServer
 from disease import DiseaseModel
 import matplotlib.pyplot as plt
 
-color_array = ["#0000FE","#FF00FA","#00FFF5","#0000F0","#0000EE","#0000EA","#0000E5","#0000E0"]
-def agent_portrayal(agent):
-	portrayal = {"Filled": "true","Layer": 0,
-						"r": 0.5}
-	if agent.disease > -1:
-			portrayal["Shape"] = "circle"
-			portrayal["r"] = 1
-			portrayal["Color"] = color_array[agent.disease]
-	# portrayal["r"] = 0.5
-	else:
-		portrayal["Shape"] = "rect"
-		portrayal["w"] = 1
-		portrayal["h"] = 1
-		portrayal["Color"] = "grey"
-	return portrayal
 
-grid = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
-server = ModularServer(DiseaseModel,
-							[grid],
-							"Disease Model",
-							{"highS":10,"middleS":10,"lowS":10, "width":50, "height":50,"edu_setting":True})
-server.port = 8521 # The default
-server.launch()
 
 def disease_graph(model):
 	""""Plots progress of disease given a model."""
@@ -78,3 +56,36 @@ def disease_graph(model):
 	plt.xlabel("Timesteps")
 	plt.legend()
 	plt.show()
+
+
+color_array = ["#0000FE","#FF00FA","#00FFF5","#0000F0","#0000EE","#0000EA","#0000E5","#0000E0"]
+def agent_portrayal(agent):
+	portrayal = {"Filled": "true","Layer": 0,
+						"r": 0.5}
+	if agent.disease > -1:
+			portrayal["Shape"] = "circle"
+			portrayal["r"] = 1
+			portrayal["Color"] = color_array[agent.disease]
+	# portrayal["r"] = 0.5
+	else:
+		portrayal["Shape"] = "rect"
+		portrayal["w"] = 1
+		portrayal["h"] = 1
+		portrayal["Color"] = "grey"
+	return portrayal
+model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
+
+for i in range(300):
+	print(i)
+	model.step()
+
+disease_graph(model)
+
+
+grid = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
+server = ModularServer(DiseaseModel,
+							[grid],
+							"Disease Model",
+							{"highS":10,"middleS":10,"lowS":10, "width":50, "height":50,"edu_setting":True})
+server.port = 8521 # The default
+server.launch()

@@ -1,4 +1,4 @@
-from Wall import wall
+from wall import wall
 
 def disease_spreader(cellmates, self, distanceFac):
 	"""

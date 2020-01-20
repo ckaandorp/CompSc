@@ -1,6 +1,6 @@
 from mesa import Agent
 # from random import randint
-from Wall import wall
+from wall import wall
 from helperFunctions import *
 
 class DiseaseAgent(Agent):
