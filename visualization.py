@@ -100,6 +100,16 @@ color_array = color_maker()
 def visualization_grid(width, height, highS, middleS, lowS, edu_setting=False, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050, diseaseRate=0.38):
 	"""
 	Launch grid visualization on server.
+	width: Width of the grid.
+	height: Height of the grid.
+	highS: Number of agents with high sociability.
+	middleS: Number of agents with middle sociability.
+	lowS: Number of agents with low sociability.
+	edu_setting: Classrooms and set schedule if true, else random free movement.
+	cureProb: Probability of agent getting better.
+	cureProbFac: Factor of cureProb getting higher.
+	mutateProb: Probability of a disease mutating.
+	diseaseRate: Rate at which the disease spreads
 	"""
 	grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
 	server = ModularServer(DiseaseModel,
@@ -112,6 +122,19 @@ def visualization_grid(width, height, highS, middleS, lowS, edu_setting=False, c
 def visualization(width, height, highS, middleS, lowS, edu_setting=True, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050, diseaseRate=0.38, grid=True, graphs=True, steps=300):
 	"""
 	Create visualizations.
+	width: Width of the grid.
+	height: Height of the grid.
+	highS: Number of agents with high sociability.
+	middleS: Number of agents with middle sociability.
+	lowS: Number of agents with low sociability.
+	edu_setting: Classrooms and set schedule if true, else random free movement.
+	cureProb: Probability of agent getting better.
+	cureProbFac: Factor of cureProb getting higher.
+	mutateProb: Probability of a disease mutating.
+	diseaseRate: Rate at which the disease spreads.
+	grid: if True show grid visualisation.
+	graphs: if True show graphs.
+	steps: number of steps in graph.
 	"""
 	if graphs:
 		model = DiseaseModel(highS, middleS, lowS, width, height, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
