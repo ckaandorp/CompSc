@@ -34,10 +34,10 @@ class DiseaseModel(Model):
 		self.mutateProb = mutateProb
 		self.diseaseRate = diseaseRate
 		self.edu_setting = edu_setting
-		self.maxDisease = 0# amount of mutations
+		self.maxDisease = 0 # amount of mutations
 		self.counter = 540 # keeps track of timesteps
 		self.removed = []
-		self.exit = (width-1,floor(height/2))
+		self.exit = (width - 1, floor(height / 2))
 		# Check if agents fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
@@ -62,8 +62,9 @@ class DiseaseModel(Model):
 			roomRightUp = (self.midWidthRoom, 5 * self.midHeightRoom)
 
 			# Set 3 goals per roster
-			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown],
-							[roomRightUp, roomRightDown, roomLeftUp]]
+			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid, roomRightDown], 
+							[roomRightMid, roomLeftDown, roomRightDown, roomLeftMid],
+							[roomRightUp, roomRightDown, roomLeftUp, roomRightMid]]
 
 		# Create agents
 		self.addAgents(lowS, 0, 0)
@@ -92,7 +93,7 @@ class DiseaseModel(Model):
 		n = self.grid.get_neighborhood(pos, moore=False)
 		neighbors = []
 		for item in n:
-			if not abs(item[0]-pos[0]) > 1 and not abs(item[1]-pos[1]) > 1:
+			if not abs(item[0] - pos[0]) > 1 and not abs(item[1] - pos[1]) > 1:
 				neighbors += [item]
 		return neighbors
 
@@ -112,8 +113,8 @@ class DiseaseModel(Model):
 		widthGrid: width of the grid
 		heightGrid: height of the grid
 		"""
-		widthRooms = floor(widthGrid/n)
-		heightRooms = floor(heightGrid/n)
+		widthRooms = floor(widthGrid / n)
+		heightRooms = floor(heightGrid / n)
 		widthHall = widthGrid - 2 * widthRooms
 		heightHall = heightGrid - 2 * heightRooms
 		# Add horizontal walls
@@ -137,9 +138,9 @@ class DiseaseModel(Model):
 		startID: ID of the first added agent
 		sociability: sociability of the agents
 		"""
-		disease_list = np.random.randint(0,2,n)
+		disease_list = np.random.randint(0, 2, n)
 		for i in range(n):
-			a = DiseaseAgent(i + startID, sociability,self,disease_list[i])
+			a = DiseaseAgent(i + startID, sociability,self, disease_list[i])
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
