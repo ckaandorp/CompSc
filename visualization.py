@@ -60,7 +60,7 @@ def disease_graph(model):
 	plt.show()
 
 def color_maker():
-	"""Returns a list of colors.""""
+	"""Returns a list of colors."""
 	R, G, B = 0, 0, 0
 	color_array = []
 
@@ -88,7 +88,6 @@ def agent_portrayal(agent):
 			portrayal["Shape"] = "circle"
 			portrayal["r"] = 1
 			portrayal["Color"] = color_array[agent.disease % len(color_array)]
-	# portrayal["r"] = 0.5
 	else:
 		portrayal["Shape"] = "rect"
 		portrayal["w"] = 1
@@ -96,22 +95,31 @@ def agent_portrayal(agent):
 		portrayal["Color"] = "grey"
 	return portrayal
 
-
 color_array = color_maker()
 
-model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
+def visualization_grid(width, height, highS, middleS, lowS, edu_setting=False, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050, diseaseRate=0.38):
+	"""
+	Launch grid visualization on server.
+	"""
+	grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
+	server = ModularServer(DiseaseModel,
+								[grid],
+								"Disease Model",
+								{"highS":highS, "middleS":middleS, "lowS":lowS, "width":width, "height":height, "edu_setting":True, "cureProb":0.1, "cureProbFac":2/1440, "mutateProb":0.0050, "diseaseRate":0.38})
+	server.port = 8521 # The default
+	server.launch()
 
-for i in range(300):
-	print(i)
-	model.step()
+def visualization(width, height, highS, middleS, lowS, edu_setting=True, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050, diseaseRate=0.38, grid=True, graphs=True, steps=300):
+	"""
+	Create visualizations.
+	"""
+	if graphs:
+		model = DiseaseModel(highS, middleS, lowS, width, height, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
+		for i in range(steps):
+			print(i)
+			model.step()
+		disease_graph(model)
+	if grid:
+		visualization_grid(width, height, highS, middleS, lowS, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
 
-disease_graph(model)
-
-
-grid = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
-server = ModularServer(DiseaseModel,
-							[grid],
-							"Disease Model",
-							{"highS":10,"middleS":10,"lowS":10, "width":50, "height":50,"edu_setting":True})
-server.port = 8521 # The default
-server.launch()
+visualization(50, 50, 20, 20, 20)
