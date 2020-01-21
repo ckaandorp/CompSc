@@ -24,7 +24,6 @@ class DiseaseAgent(Agent):
 		self.talkedto = False
 		if self.model.edu_setting == True:
 			self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
-			self.goal = (self.roster[0][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[0][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
 
 	def random_move(self):
 		"""
@@ -46,14 +45,17 @@ class DiseaseAgent(Agent):
 		"""
 		Moves agent one step on the grid.
 		"""
-		if self.model.counter%1440 > 900:
+		if self.model.counter%1440 > 1200:
 			self.goal = self.model.exit
 			self.path = []
-		elif self.model.counter%1440 > 740:
+		elif self.model.counter%1440 > 940:
+			self.goal = (self.roster[2][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[2][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
+			self.path = []
+		elif self.model.counter%1440 > 700:
 			self.goal = (self.roster[1][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[1][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
 			self.path = []
 		elif self.model.counter%1440 > 540:
-			self.goal = (self.roster[2][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[2][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
+			self.goal = (self.roster[0][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[0][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
 			self.path = []
 
 		if not isinstance(self, wall):
@@ -141,6 +143,7 @@ class DiseaseAgent(Agent):
 		if self.pos == self.model.exit:
 			self.model.removed += [self]
 			self.model.grid.remove_agent(self)
+
 	def cured(self):
 		"""
 		Cure agents based on cure probability sick time.
@@ -160,12 +163,12 @@ class DiseaseAgent(Agent):
 		if self.model.counter%1440 > 540 and self.pos == None:
 			if self.model.grid.is_cell_empty(self.model.exit):
 				self.model.grid.place_agent(self,self.model.exit)
-		if self.model.counter%1440 > 540 and self.model.counter%1440 < 1020  and self.pos != None:
+		if self.pos != None:
 			if self.model.edu_setting == False:
 				self.random_move()
 			else:
 				self.move()
-				if self.model.counter%1440 > 800:
+				if self.model.counter%1440 > 800 :
 					self.go_home()
 		if self.disease >= 1:
 			self.sickTime += 1
