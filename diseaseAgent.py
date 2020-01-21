@@ -46,15 +46,16 @@ class DiseaseAgent(Agent):
 		"""
 		Moves agent one step on the grid.
 		"""
-		if 400 > self.model.counter > 200:
-			self.goal = (self.roster[1][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[1][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
-			self.path = []
-		elif 540 > self.model.counter > 400:
-			self.goal = (self.roster[2][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[2][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
-			self.path = []
-		elif self.model.counter > 540:
+		if self.model.counter%1440 > 900:
 			self.goal = self.model.exit
 			self.path = []
+		elif self.model.counter%1440 > 740:
+			self.goal = (self.roster[1][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[1][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
+			self.path = []
+		elif self.model.counter%1440 > 540:
+			self.goal = (self.roster[2][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[2][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
+			self.path = []
+
 		if not isinstance(self, wall):
 			cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
 			newCellmates = []
@@ -156,12 +157,16 @@ class DiseaseAgent(Agent):
 
 	def step(self):
 		"""Move and spread disease if sick."""
+		if self.model.counter%1440 > 540 and self.pos == None:
+			if self.model.grid.is_cell_empty(self.model.exit):
+				self.model.grid.place_agent(self,self.model.exit)
 		if self.model.counter%1440 > 540 and self.model.counter%1440 < 1020  and self.pos != None:
 			if self.model.edu_setting == False:
 				self.random_move()
 			else:
 				self.move()
-				self.go_home()
+				if self.model.counter%1440 > 800:
+					self.go_home()
 		if self.disease >= 1:
 			self.sickTime += 1
 			self.mutate()

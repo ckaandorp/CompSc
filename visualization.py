@@ -60,7 +60,7 @@ def disease_graph(model):
 	plt.show()
 
 def color_maker():
-	"""Returns a list of colors.""""
+	"""Returns a list of colors."""
 	R, G, B = 0, 0, 0
 	color_array = []
 
@@ -76,7 +76,7 @@ def color_maker():
 				# Ensure colors are not too dark
 				if (R + G + B) > 200:
 					color_array += ["#" + hex(R)[2:] + hex(G)[2:] + hex(B)[2:]]
-	
+
 	random.shuffle(color_array)
 	color_array.insert(0, "#000000")
 	return color_array
