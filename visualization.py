@@ -2,7 +2,7 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from disease import DiseaseModel
 import matplotlib.pyplot as plt
-
+import random
 
 
 def disease_graph(model):
@@ -59,8 +59,28 @@ def disease_graph(model):
 	plt.legend()
 	plt.show()
 
+def color_maker():
+	"""Returns a list of colors.""""
+	R, G, B = 0, 0, 0
+	color_array = []
 
-color_array = ["#000000","#F2F3AE","#00171F","#003459","#007EA7","#00A8E8"]
+	for i in range(1,6):
+		for j in range(1,6):
+			for k in range(1,6):
+				# skip gray
+				if i == j == k:
+					continue
+				R = i * 50
+				G = j * 50
+				B = k * 50
+				# Ensure colors are not too dark
+				if (R + G + B) > 200:
+					color_array += ["#" + hex(R)[2:] + hex(G)[2:] + hex(B)[2:]]
+	
+	random.shuffle(color_array)
+	color_array.insert(0, "#000000")
+	return color_array
+
 def agent_portrayal(agent):
 	portrayal = {"Filled": "true","Layer": 0,
 						"r": 0.5}
@@ -75,6 +95,10 @@ def agent_portrayal(agent):
 		portrayal["h"] = 1
 		portrayal["Color"] = "grey"
 	return portrayal
+
+
+color_array = color_maker()
+
 model = DiseaseModel(10, 10, 10, 50, 50, edu_setting=False, mutateProb=0.005)
 
 for i in range(300):
