@@ -155,9 +155,7 @@ class DiseaseAgent(Agent):
 				self.cureProb *= self.model.cureProbFac
 
 	def step(self):
-		"""
-		Move and spread disease if sick.
-		"""
+		"""Move and spread disease if sick."""
 		if self.model.counter%1440 > 540 and self.model.counter%1440 < 1020  and self.pos != None:
 			if self.model.edu_setting == False:
 				self.random_move()
