@@ -100,15 +100,16 @@ class DiseaseAgent(Agent):
 			if self.pos != self.goal:
 				if self.path == []:
 					self.path = AStarSearch(self.pos, self.goal, self.model)
+				# for i in range(10):
 				if self.path != []:
 					if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
 						self.model.grid.move_agent(self,self.path[0])
 						self.path.pop(0)
-					else:
-						self.path = AStarSearch(self.pos, self.goal, self.model)
-						if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
-							self.model.grid.move_agent(self, self.path[0])
-							self.path.pop(0)
+					# else:
+					# 	self.path = AStarSearch(self.pos, self.goal, self.model)
+					# 	if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
+					# 		self.model.grid.move_agent(self, self.path[0])
+					# 		self.path.pop(0)
 
 	def spread_disease(self):
 		"""
