@@ -60,7 +60,7 @@ def disease_graph(model):
 	plt.show()
 
 def color_maker():
-	"""Returns a list of colors.""""
+	"""Returns a list of colors."""
 	R, G, B = 0, 0, 0
 	color_array = []
 
@@ -112,6 +112,6 @@ grid = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
 server = ModularServer(DiseaseModel,
 							[grid],
 							"Disease Model",
-							{"highS":10,"middleS":10,"lowS":10, "width":50, "height":50,"edu_setting":True})
+							{"highS":10,"middleS":10,"lowS":10, "width":50, "height":50,"edu_setting":False})
 server.port = 8521 # The default
 server.launch()

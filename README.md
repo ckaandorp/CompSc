@@ -14,7 +14,5 @@ If your browser doesnt open automaticly, run the code and then go to. http://127
 Our dependencies are mesa,numpy and math.
 
 so please run,
-pip import mesa,
-pip import numpy and
-pip import math
+pip install -r requirements.txt
 before runnig our code.
