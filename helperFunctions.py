@@ -116,7 +116,7 @@ def AStarSearch(start, end, graph):
 		for neighbor in graph.get_vertex_neighbors(current):
 			if neighbor in closedVertices:
 				continue #We have already processed this node exhaustively
-			candidateG = G[current] + graph.move_cost(current, neighbor)
+			candidateG = G[current] + graph.move_cost(neighbor)
 
 			if neighbor not in openVertices:
 				openVertices.add(neighbor) #Discovered a new vertex

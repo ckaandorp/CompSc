@@ -34,14 +34,15 @@ class DiseaseModel(Model):
 		self.mutateProb = mutateProb
 		self.diseaseRate = diseaseRate
 		self.edu_setting = edu_setting
-		self.maxDisease = 0 # amount of mutations
-		self.counter = 0 # keeps track of timesteps
-
+		self.maxDisease = 0# amount of mutations
+		self.counter = 540 # keeps track of timesteps
+		self.removed = []
+		self.exit = (width-1,floor(height/2))
 		# Check if agents fit within grid
 		if self.num_agents > width * height:
 			raise ValueError("Number of agents exceeds grid capacity.")
 
-		# make grid with random activation.
+		# Create grid with random activation
 		self.grid = SingleGrid(width, height, True)
 		self.schedule = RandomActivation(self)
 
@@ -49,20 +50,18 @@ class DiseaseModel(Model):
 			# Create walls
 			numberRooms = 3
 			self.add_walls(numberRooms, width, height)
-			midWidthRoom = floor(width / numberRooms / 2)
-			midHeightRoom = floor(height / numberRooms / 2)
-			self.midWidthRoom = midWidthRoom
-			self.midHeightRoom = midHeightRoom
+			self.midWidthRoom = floor(width / numberRooms / 2)
+			self.midHeightRoom = floor(height / numberRooms / 2)
 
-			# Calculate the middlepoints of the 6 rooms
-			roomLeftDown = (5 * midWidthRoom, midHeightRoom)
-			roomLeftMid = (3 * midWidthRoom, midHeightRoom)
-			roomLeftUp = (midWidthRoom, midHeightRoom)
-			roomRightDown = (5 * midWidthRoom, 5 * midHeightRoom, )
-			roomRightMid = (3 * midWidthRoom, 5 * midHeightRoom)
-			roomRightUp = (midWidthRoom, 5 * midHeightRoom)
+			# Calculate the centers of the 6 rooms
+			roomLeftDown = (5 * self.midWidthRoom, self.midHeightRoom)
+			roomLeftMid = (3 * self.midWidthRoom, self.midHeightRoom)
+			roomLeftUp = (self.midWidthRoom, self.midHeightRoom)
+			roomRightDown = (5 * self.midWidthRoom, 5 * self.midHeightRoom, )
+			roomRightMid = (3 * self.midWidthRoom, 5 * self.midHeightRoom)
+			roomRightUp = (self.midWidthRoom, 5 * self.midHeightRoom)
 
-			# Set goals
+			# Set 3 goals per roster
 			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid], [roomRightMid, roomLeftDown, roomRightDown],
 							[roomRightUp, roomRightDown, roomLeftUp]]
 
@@ -97,8 +96,11 @@ class DiseaseModel(Model):
 				neighbors += [item]
 		return neighbors
 
-	def move_cost(self, a, b):
-		if self.grid.is_cell_empty(b):
+	def move_cost(self, location):
+		"""
+		Return the cost of a location.
+		"""
+		if self.grid.is_cell_empty(location):
 			return 1 # Normal movement cost
 		else:
 			return 100
@@ -106,7 +108,7 @@ class DiseaseModel(Model):
 	def add_walls(self, n, widthGrid, heightGrid):
 		"""
 		Add walls in grid.
-		n: number of rooms vertically
+		n: number of rooms horizontally
 		widthGrid: width of the grid
 		heightGrid: height of the grid
 		"""
@@ -135,18 +137,17 @@ class DiseaseModel(Model):
 		startID: ID of the first added agent
 		sociability: sociability of the agents
 		"""
-		disease_list = np.random.randint(0, 2, n)
+		disease_list = np.random.randint(0,2,n)
 		for i in range(n):
-			a = DiseaseAgent(i + startID, sociability, self, disease_list[i])
+			a = DiseaseAgent(i + startID, sociability,self,disease_list[i])
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
-
 	def step(self):
-		""" Continue one step in simulation. """
+		"""
+		Continue one step in simulation.
+		"""
 		self.counter += 1
 		self.datacollector.collect(self)
 		self.schedule.step()
-
-
