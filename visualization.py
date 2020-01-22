@@ -85,7 +85,7 @@ def agent_portrayal(agent):
 	portrayal = {"Filled": "true","Layer": 0, "r": 0.5}
 	if agent.disease > -1:
 			portrayal["Shape"] = "circle"
-			if agent.pos == agent.goal:
+			if agent.goal == agent.pos:
 				portrayal["r"] = 2
 			else:
 				portrayal["r"] = 1

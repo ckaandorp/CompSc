@@ -14,6 +14,7 @@ class DiseaseAgent(Agent):
 	def __init__(self, unique_id, sociability, model, disease, roster):
 		super().__init__(unique_id, model)
 		# Randomly set agent as healthy or sick
+		self.id = unique_id
 		self.disease = disease
 		self.sociability = sociability
 		self.resistent = []
@@ -58,47 +59,47 @@ class DiseaseAgent(Agent):
 		elif self.model.counter%1440 == 541:
 			self.goal = self.roster[0]
 			self.path = []
+		if self.pos != self.goal:
+			if not isinstance(self, wall):
+				cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
+				newCellmates = []
+				for cellmate in cellmates:
+					if not abs(cellmate.pos[0]-self.pos[0]) > 1 and not abs(cellmate.pos[1]-self.pos[1]) > 1 and not isinstance(cellmate, wall):
+						newCellmates += [cellmate]
 
-		if not isinstance(self, wall):
-			cellmates = self.model.grid.get_neighbors(self.pos, moore=True)
-			newCellmates = []
-			for cellmate in cellmates:
-				if not abs(cellmate.pos[0]-self.pos[0]) > 1 and not abs(cellmate.pos[1]-self.pos[1]) > 1 and not isinstance(cellmate, wall):
-					newCellmates += [cellmate]
-
-			# behavior based on sociability.
-			# move away from agent if low sociability
-			if self.sociability == 0:
-				if len(newCellmates) > 0:
-					other = self.random.choice(newCellmates)
-					# find escape route
-					escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
-					choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
-					if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
-						if self.model.grid.is_cell_empty(choice):
-							self.model.grid.move_agent(self, choice)
+				# behavior based on sociability.
+				# move away from agent if low sociability
+				if self.sociability == 0 and self.random.random() > 0.3:
+					if len(newCellmates) > 0:
+						other = self.random.choice(newCellmates)
+						# find escape route
+						escape = ((self.pos[0] - other.pos[0]), (self.pos[1] - other.pos[1]))
+						choice = (escape[0] + self.pos[0], escape[1] + self.pos[1])
+						if self.model.grid.width > choice[0] > 0 and self.model.grid.height > choice[1] > 0:
+							if self.model.grid.is_cell_empty(choice):
+								self.model.grid.move_agent(self, choice)
+								return
+				# stop if talked to if middle sociability
+				if self.sociability == 1 and self.random.random() > self.talking:
+					for neighbor in newCellmates:
+						if neighbor.sociability == 2:
+							if self.talkedto != neighbor:
+								self.talking *= 1.5
+								self.talkedto = neighbor
 							return
-			# stop if talked to if middle sociability
-			if self.sociability == 1 and self.random.random() > self.talking:
-				for neighbor in newCellmates:
-					if neighbor.sociability == 2:
-						if self.talkedto != neighbor:
-							self.talking *= 1.5
-							self.talkedto = neighbor
+				else:
+					self.talking = 0.1
+
+				# stop to talk if there is a neighbor if high sociability
+				if self.sociability == 2  and self.random.random() > self.talking:
+					if len(newCellmates) > 0 and self.talkedto != newCellmates[0]:
+						self.talking *= 1.5
+						self.talkedto = newCellmates[0]
 						return
-			else:
-				self.talking = 0.1
+				else:
+					self.talking = 0.1
 
-			# stop to talk if there is a neighbor if high sociability
-			if self.sociability == 2  and self.random.random() > self.talking:
-				if len(newCellmates) > 0 and self.talkedto != newCellmates[0]:
-					self.talking *= 1.5
-					self.talkedto = newCellmates[0]
-					return
-			else:
-				self.talking = 0.1
 
-			if self.pos != self.goal:
 				if self.path == []:
 					self.path = AStarSearch(self.pos, self.goal, self.model)
 				if self.path != []:
@@ -107,9 +108,6 @@ class DiseaseAgent(Agent):
 						self.path.pop(0)
 					else:
 						self.path = AStarSearch(self.pos, self.goal, self.model)
-						if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
-							self.model.grid.move_agent(self, self.path[0])
-							self.path.pop(0)
 
 	def spread_disease(self):
 		"""
