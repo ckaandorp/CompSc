@@ -11,7 +11,7 @@ class DiseaseAgent(Agent):
 	model: model that the agent is in
 	disease: > 0 if agent has a disease, 0 if agent is healthy
 	"""
-	def __init__(self, unique_id, sociability, model, disease):
+	def __init__(self, unique_id, sociability, model, disease, roster):
 		super().__init__(unique_id, model)
 		# Randomly set agent as healthy or sick
 		self.disease = disease
@@ -21,9 +21,9 @@ class DiseaseAgent(Agent):
 		self.sickTime = 0
 		self.talking = 0.1
 		self.path = []
+		self.goal = 0
 		self.talkedto = False
-		if self.model.edu_setting == True:
-			self.roster = self.model.roster[self.random.randrange(len(self.model.roster))]
+		self.roster = roster
 
 	def random_move(self):
 		"""
@@ -45,17 +45,18 @@ class DiseaseAgent(Agent):
 		"""
 		Moves agent one step on the grid.
 		"""
-		if self.model.counter%1440 > 1200:
+		if self.model.counter%1440 == 1200:
 			self.goal = self.model.exit
 			self.path = []
-		elif self.model.counter%1440 > 940:
-			self.goal = (self.roster[2][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[2][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
+		elif self.model.counter%1440 == 940:
+			self.goal = self.roster[2]
 			self.path = []
-		elif self.model.counter%1440 > 700:
-			self.goal = (self.roster[1][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[1][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
+		elif self.model.counter%1440 == 700:
+			self.goal = self.roster[1]
+			if self.pos != self.goal:
 			self.path = []
-		elif self.model.counter%1440 > 540:
-			self.goal = (self.roster[0][0] + self.random.randint(-self.model.midWidthRoom + 2, self.model.midWidthRoom - 2), self.roster[0][1] + self.random.randint(-self.model.midHeightRoom + 2, self.model.midHeightRoom - 2))
+		elif self.model.counter%1440 == 541:
+			self.goal = self.roster[0]
 			self.path = []
 
 		if not isinstance(self, wall):
@@ -100,16 +101,15 @@ class DiseaseAgent(Agent):
 			if self.pos != self.goal:
 				if self.path == []:
 					self.path = AStarSearch(self.pos, self.goal, self.model)
-				# for i in range(10):
 				if self.path != []:
 					if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
 						self.model.grid.move_agent(self,self.path[0])
 						self.path.pop(0)
-					# else:
-					# 	self.path = AStarSearch(self.pos, self.goal, self.model)
-					# 	if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
-					# 		self.model.grid.move_agent(self, self.path[0])
-					# 		self.path.pop(0)
+					else:
+						self.path = AStarSearch(self.pos, self.goal, self.model)
+						if self.path != [-1] and self.model.grid.is_cell_empty(self.path[0]):
+							self.model.grid.move_agent(self, self.path[0])
+							self.path.pop(0)
 
 	def spread_disease(self):
 		"""
