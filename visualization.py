@@ -82,11 +82,13 @@ def color_maker():
 	return color_array
 
 def agent_portrayal(agent):
-	portrayal = {"Filled": "true","Layer": 0,
-						"r": 0.5}
+	portrayal = {"Filled": "true","Layer": 0, "r": 0.5}
 	if agent.disease > -1:
 			portrayal["Shape"] = "circle"
-			portrayal["r"] = 1
+			if agent.pos == agent.goal:
+				portrayal["r"] = 2
+			else:
+				portrayal["r"] = 1
 			portrayal["Color"] = color_array[agent.disease % len(color_array)]
 	else:
 		portrayal["Shape"] = "rect"
@@ -111,11 +113,11 @@ def visualization_grid(width, height, highS, middleS, lowS, edu_setting=False, c
 	mutateProb: Probability of a disease mutating.
 	diseaseRate: Rate at which the disease spreads
 	"""
-	grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
+	grid = CanvasGrid(agent_portrayal, width, height, width*10, height*10)
 	server = ModularServer(DiseaseModel,
 								[grid],
 								"Disease Model",
-								{"highS":highS, "middleS":middleS, "lowS":lowS, "width":width, "height":height, "edu_setting":True, "cureProb":0.1, "cureProbFac":2/1440, "mutateProb":0.0050, "diseaseRate":0.38})
+								{"highS":highS, "middleS":middleS, "lowS":lowS, "width":width, "height":height, "edu_setting":edu_setting, "cureProb":cureProb, "cureProbFac":cureProbFac, "mutateProb":mutateProb, "diseaseRate":diseaseRate})
 	server.port = 8521 # The default
 	server.launch()
 
@@ -145,4 +147,4 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True, curePro
 	if grid:
 		visualization_grid(width, height, highS, middleS, lowS, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
 
-visualization(50, 50, 20, 20, 20)
+visualization(50, 30, 10, 10, 10, graphs=False)
