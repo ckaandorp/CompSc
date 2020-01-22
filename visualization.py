@@ -86,7 +86,10 @@ def agent_portrayal(agent):
 						"r": 0.5}
 	if agent.disease > -1:
 			portrayal["Shape"] = "circle"
-			portrayal["r"] = 1
+			if agent.goal == agent.pos:
+				portrayal["r"] = 2
+			else:
+				portrayal["r"] = 1
 			portrayal["Color"] = color_array[agent.disease % len(color_array)]
 	else:
 		portrayal["Shape"] = "rect"
@@ -145,4 +148,4 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True, curePro
 	if grid:
 		visualization_grid(width, height, highS, middleS, lowS, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
 
-visualization(50, 50, 20, 20, 20)
+visualization(50, 50, 10, 10, 10, graphs=False)
