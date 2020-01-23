@@ -161,11 +161,13 @@ def color_maker():
 	return color_array
 
 def agent_portrayal(agent):
-	portrayal = {"Filled": "true","Layer": 0,
-						"r": 0.5}
+	portrayal = {"Filled": "true","Layer": 0, "r": 0.5}
 	if agent.disease > -1:
 			portrayal["Shape"] = "circle"
-			portrayal["r"] = 1
+			if agent.goal == agent.pos:
+				portrayal["r"] = 2
+			else:
+				portrayal["r"] = 1
 			portrayal["Color"] = color_array[agent.disease % len(color_array)]
 	else:
 		portrayal["Shape"] = "rect"
@@ -179,18 +181,41 @@ color_array = color_maker()
 def visualization_grid(width, height, highS, middleS, lowS, edu_setting=False, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050, diseaseRate=0.38):
 	"""
 	Launch grid visualization on server.
+	width: Width of the grid.
+	height: Height of the grid.
+	highS: Number of agents with high sociability.
+	middleS: Number of agents with middle sociability.
+	lowS: Number of agents with low sociability.
+	edu_setting: Classrooms and set schedule if true, else random free movement.
+	cureProb: Probability of agent getting better.
+	cureProbFac: Factor of cureProb getting higher.
+	mutateProb: Probability of a disease mutating.
+	diseaseRate: Rate at which the disease spreads
 	"""
-	grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
+	grid = CanvasGrid(agent_portrayal, width, height, width*10, height*10)
 	server = ModularServer(DiseaseModel,
 								[grid],
 								"Disease Model",
-								{"highS":highS, "middleS":middleS, "lowS":lowS, "width":width, "height":height, "edu_setting":True, "cureProb":0.1, "cureProbFac":2/1440, "mutateProb":0.0050, "diseaseRate":0.38})
+								{"highS":highS, "middleS":middleS, "lowS":lowS, "width":width, "height":height, "edu_setting":edu_setting, "cureProb":cureProb, "cureProbFac":cureProbFac, "mutateProb":mutateProb, "diseaseRate":diseaseRate})
 	server.port = 8521 # The default
 	server.launch()
 
 def visualization(width, height, highS, middleS, lowS, edu_setting=True, cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050, diseaseRate=0.38, grid=True, graphs=True, steps=300):
 	"""
 	Create visualizations.
+	width: Width of the grid.
+	height: Height of the grid.
+	highS: Number of agents with high sociability.
+	middleS: Number of agents with middle sociability.
+	lowS: Number of agents with low sociability.
+	edu_setting: Classrooms and set schedule if true, else random free movement.
+	cureProb: Probability of agent getting better.
+	cureProbFac: Factor of cureProb getting higher.
+	mutateProb: Probability of a disease mutating.
+	diseaseRate: Rate at which the disease spreads.
+	grid: if True show grid visualisation.
+	graphs: if True show graphs.
+	steps: number of steps in graph.
 	"""
 	if graphs:
 		# create an average
