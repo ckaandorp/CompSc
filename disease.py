@@ -50,21 +50,30 @@ class DiseaseModel(Model):
 			# Create walls
 			numberRooms = 3
 			self.add_walls(numberRooms, width, height)
+
 			self.midWidthRoom = floor(width / numberRooms / 2)
 			self.midHeightRoom = floor(height / numberRooms / 2)
-
-			# Calculate the centers of the 6 rooms
-			roomLeftDown = (5 * self.midWidthRoom, self.midHeightRoom)
-			roomLeftMid = (3 * self.midWidthRoom, self.midHeightRoom)
-			roomLeftUp = (self.midWidthRoom, self.midHeightRoom)
-			roomRightDown = (5 * self.midWidthRoom, 5 * self.midHeightRoom, )
-			roomRightMid = (3 * self.midWidthRoom, 5 * self.midHeightRoom)
-			roomRightUp = (self.midWidthRoom, 5 * self.midHeightRoom)
+			self.widthRoom =  floor(width / numberRooms)
+			self.heightRoom =  floor(height / numberRooms)
+			numberRows = floor((self.heightRoom) / 2)
+			spaceRows = 2
+			widthRows = self.widthRoom - 4
+			location = [[] for _ in range(numberRooms * 2)]
+			for i in range(numberRooms):
+				for j in range(0, numberRows, 2):
+					startWidth = 2 + (i % 3) * self.widthRoom
+					for currentWidth in range(widthRows):
+						location[i] += [(startWidth + currentWidth, j)]
+			for i in range(3, numberRooms * 2):
+				for j in range(0, numberRows, 2):
+					startWidth = 2 + (i % 3) * self.widthRoom
+					for currentWidth in range(widthRows):
+						location[i] += [(startWidth + currentWidth, height - 1 - j)]
 
 			# Set 3 goals per roster
-			self.roster = [[roomLeftDown, roomLeftUp, roomRightMid, roomRightDown], 
-							[roomRightMid, roomLeftDown, roomRightDown, roomLeftMid],
-							[roomRightUp, roomRightDown, roomLeftUp, roomRightMid]]
+			self.roster = [[location[0], location[3], location[1]], 
+							[location[5], location[2], location[0]],
+							[location[4], location[1], location[5]]]
 
 		# Create agents
 		self.addAgents(lowS, 0, 0)
@@ -140,11 +149,22 @@ class DiseaseModel(Model):
 		"""
 		disease_list = np.random.randint(0, 2, n)
 		for i in range(n):
-			a = DiseaseAgent(i + startID, sociability,self, disease_list[i])
+			if self.edu_setting == True:
+				a_roster = []
+				rosterNumber = self.random.randrange(len(self.roster))
+				rooms = self.roster[rosterNumber]
+				for roomNumber in range(len(rooms)):
+					loc = self.random.choice(rooms[roomNumber])
+					a_roster += [loc]
+					(self.roster[rosterNumber][roomNumber]).remove(loc)
+			else:
+				a_roster = []
+			a = DiseaseAgent(i + startID, sociability, self, disease_list[i], a_roster)
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
 			self.grid.place_agent(a, location)
+
 	def step(self):
 		"""
 		Continue one step in simulation.
