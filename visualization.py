@@ -148,4 +148,4 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True, curePro
 	if grid:
 		visualization_grid(width, height, highS, middleS, lowS, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
 
-visualization(50, 50, 10, 10, 10, graphs=False)
+visualization(50, 50, 10, 10, 10, graphs=True,grid=False)
