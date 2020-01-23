@@ -2,48 +2,127 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 from disease import DiseaseModel
 import matplotlib.pyplot as plt
+import numpy as np
 import random
 
 
-def disease_graph(model):
+def disease_graph(models, steps):
 	""""
 	Plots progress of disease given a model.
 	"""
-	# get dataframe
-	df = model.datacollector.get_model_vars_dataframe()
-	diseased = []
-	mutation = []
-	low_sociability = []
-	middle_sociability = []
-	high_sociability = []
-	n_mutations = 0
+	diseased_avg = []
+	lowS_sick_avg = []
+	middleS_sick_avg = []
+	highS_sick_avg = []
+	lowS_avg = []
+	middleS_avg = []
+	highS_avg = []
+	disease_plotter_avg = []
+	max_n_mutations = 0
 
-	for index, row in df.iterrows():
-		diseased += [row[0][0]]
-		mutation += [row[0][1]]
-		sociability = row[0][3]
-		low_sociability += [sociability['0']]
-		middle_sociability += [sociability['1']]
-		high_sociability += [sociability['2']]
-		if row[0][2] > n_mutations:
-			n_mutations = row[0][2]
+	for model in models:
+		# get dataframe
+		df = model.datacollector.get_model_vars_dataframe()
 
-	plt.plot(diseased, color="red", label='total')
+		# initialize store vars
+		diseased = []
+		mutation = []
+		low_sociability = []
+		middle_sociability = []
+		high_sociability = []
+		n_mutations = 0
+		
 
-	# collect all diseases
-	disease_plotter = []
+		for index, row in df.iterrows():
+			diseased += [row[0][0]]
+			mutation += [row[0][1]]
+			sociability = row[0][3]
+			low_sociability += [sociability['0']]
+			middle_sociability += [sociability['1']]
+			high_sociability += [sociability['2']]
+			if row[0][2] > n_mutations:
+				n_mutations = row[0][2]
+				if n_mutations > max_n_mutations:
+					max_n_mutations = n_mutations
 
-	for _ in range(n_mutations):
-		disease_plotter += [[]]
-	for j in range(len(mutation)):
-		for i in range(n_mutations):
-			if i+1 in mutation[j]:
-				disease_plotter[i] += [mutation[j][i+1]]
-			else:
-				disease_plotter[i] += [0]
+
+		# collect all diseases
+		disease_plotter = []
+
+		for _ in range(n_mutations):
+			disease_plotter += [[]]
+		for j in range(len(mutation)):
+			for i in range(n_mutations):
+				if i+1 in mutation[j]:
+					disease_plotter[i] += [mutation[j][i+1]]
+				else:
+					disease_plotter[i] += [0]
+			# print("HELP\n", disease_plotter)
+			# print()
+		print("mutationlist", disease_plotter[0])
+		print()
+
+		lowS_sick = [x / model.lowS for x in low_sociability]
+		middleS_sick = [x / model.middleS for x in middle_sociability]
+		highS_sick = [x / model.highS for x in high_sociability]
+
+		# store for averaging
+		diseased_avg += [diseased]
+		lowS_sick_avg += [lowS_sick]
+
+		
+		middleS_sick_avg += [middleS_sick]
+		highS_sick_avg += [highS_sick]
+		lowS_avg += [model.lowS]
+		middleS_avg += [model.middleS]
+		highS_avg += [model.highS]
+		disease_plotter_avg += [disease_plotter]
+		
+	
+
+
+	### calculate averages + plot
+	diseased_avg = np.mean(np.array(diseased_avg), axis=0)
+	print()
+	print("AVERAGE\n", disease_plotter_avg[0])
+	print()
+	lowS_sick_avg = np.mean(np.array(lowS_sick_avg), axis=0)
+	middleS_sick_avg = np.mean(np.array(middleS_sick_avg), axis=0)
+	highS_sick_avg = np.mean(np.array(highS_sick_avg), axis=0)
+	lowS_avg = np.mean(lowS_avg)
+	middleS_avg = np.mean(middleS_avg)
+	highS_avg = np.mean(highS_avg)
+
+
+	# PSEUDO CODE TIME
+	# JE HEBT DE MAX Lengte # aantal mutaties 
+	# voor die i door alle andere gaan en in nieuwe lijst ?
+	# zodra die klaar is average nemen en in total lijst doen
+	# for model_mutations in disease_plotter_avg:
+	# 	for i in range(0, max_n_mutations)
+
+	# LIJSTEEN MET 0'EN TOEVOEGEN AFHANKELIJK VAN HOE VEEL STAPPEN 
+	# WORDEN GESIMULEERD
+	# ### MEEGEVEN HOE VEEL STAPPEN
+
+
+	# print("big nani", disease_plotter_avg)
+	# max_mutations = max(map(len, disease_plotter_avg))
+	for mutation_list in disease_plotter_avg:
+		len_mutation = len(mutation_list)
+		if len_mutation < max_n_mutations:
+			mutation_list.extend([[0 for x in range(0, steps)]] * (max_n_mutations - len_mutation))
+	
+	disease_plotter_avg = np.mean(disease_plotter_avg, axis=0)
+	# print(disease_plotter_avg)
+	# disease_plotter_avg = np.mean(np.array(disease_plotter_avg), axis=0)
+
+
+	plt.plot(diseased_avg, color="red", label='total')
+
 	# plot all diseases
-	for mutation in disease_plotter:
-		plt.plot(mutation) #linestyle='dashed')
+	for mutation in disease_plotter_avg:
+		plt.plot(mutation)
 
 	plt.xlabel('Timesteps')
 	plt.ylabel('Infected (%)')
@@ -51,9 +130,9 @@ def disease_graph(model):
 	plt.show()
 
 	# plot agent sociability
-	plt.plot([x / model.lowS for x in low_sociability], label='low ' + str(model.lowS))
-	plt.plot([x / model.middleS for x in middle_sociability], label='middle ' + str(model.middleS))
-	plt.plot([x / model.highS for x in high_sociability], label='high ' + str(model.highS))
+	plt.plot(lowS_sick_avg, label='low ' + str(lowS_avg))
+	plt.plot(middleS_sick_avg, label='middle ' + str(middleS_avg))
+	plt.plot(highS_sick_avg, label='high ' + str(highS_avg))
 	plt.ylabel("Infected (%)")
 	plt.xlabel("Timesteps")
 	plt.legend()
@@ -114,12 +193,19 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True, curePro
 	Create visualizations.
 	"""
 	if graphs:
-		model = DiseaseModel(highS, middleS, lowS, width, height, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
-		for i in range(steps):
-			print(i)
-			model.step()
-		disease_graph(model)
+		# create an average
+		models = []
+		for i in range(0,3):
+			model = DiseaseModel(highS, middleS, lowS, width, height, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
+			for j in range(steps):
+				print(j)
+				model.step()
+			models += [model]
+
+		disease_graph(models, steps)
+
 	if grid:
 		visualization_grid(width, height, highS, middleS, lowS, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
 
-visualization(50, 50, 20, 20, 20)
+
+visualization(50, 50, 10, 10, 10, steps=10, grid=False)
