@@ -1,0 +1,3 @@
+low_versus_mid t_value= nan  p_value= nan
+low_versus_high t_value= nan  p_value= nan
+mid_versus_high t_value= nan  p_value= nan
