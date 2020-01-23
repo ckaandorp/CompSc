@@ -4,7 +4,13 @@ from disease import DiseaseModel
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+from scipy import stats
 
+def t_test(a,b):
+	t, p = stats.ttest_ind(a,b)
+	print('t', t)
+	print('p', p)
+	return t,p
 
 def disease_graph(models, steps):
 	""""
@@ -18,6 +24,9 @@ def disease_graph(models, steps):
 	middleS_avg = []
 	highS_avg = []
 	disease_plotter_avg = []
+	low_last = []
+	mid_last = []
+	high_last = []
 	max_n_mutations = 0
 
 	for model in models:
@@ -78,9 +87,12 @@ def disease_graph(models, steps):
 		highS_avg += [model.highS]
 		disease_plotter_avg += [disease_plotter]
 
-
-
-
+		low_last += [low_sociability[-1]]
+		mid_last += [middle_sociability[-1]]
+		high_last += [high_sociability[-1]]
+	t_test(low_last,mid_last)
+	t_test(low_last,high_last)
+	t_test(high_last,mid_last)
 	### calculate averages + plot
 	diseased_avg = np.mean(np.array(diseased_avg), axis=0)
 	print()
@@ -233,4 +245,4 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True, curePro
 		visualization_grid(width, height, highS, middleS, lowS, edu_setting, cureProb, cureProbFac, mutateProb, diseaseRate)
 
 
-visualization(50, 50, 10, 10, 10, steps=10, grid=False)
+visualization(50, 50, 10, 10, 10, steps=10, graphs=True,grid=True)
