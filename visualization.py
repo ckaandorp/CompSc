@@ -10,7 +10,7 @@ def t_test(a,b):
 	t, p = stats.ttest_ind(a,b)
 	print('t', t)
 	print('p', p)
-	return t,p
+	return "t_value= " + str(t) +"  p_value= " + str(p)
 
 def disease_graph(models, steps):
 	""""
@@ -90,9 +90,11 @@ def disease_graph(models, steps):
 		low_last += [low_sociability[-1]]
 		mid_last += [middle_sociability[-1]]
 		high_last += [high_sociability[-1]]
-	t_test(low_last,mid_last)
-	t_test(low_last,high_last)
-	t_test(high_last,mid_last)
+
+	F = open("workfile.txt","w")
+	F.write("low_versus_mid " + t_test(low_last,mid_last) + "\n")
+	F.write("low_versus_high " + t_test(low_last,high_last)+ "\n")
+	F.write("mid_versus_high " + t_test(high_last,mid_last)+ "\n")
 	### calculate averages + plot
 	diseased_avg = np.mean(np.array(diseased_avg), axis=0)
 	print()
