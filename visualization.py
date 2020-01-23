@@ -46,7 +46,7 @@ def disease_graph(models, steps):
 					max_n_mutations = n_mutations
 
 
-		# collect all diseases
+		# collect all diseases (mutations)
 		disease_plotter = []
 
 		for _ in range(n_mutations):
@@ -57,11 +57,8 @@ def disease_graph(models, steps):
 					disease_plotter[i] += [mutation[j][i+1]]
 				else:
 					disease_plotter[i] += [0]
-			# print("HELP\n", disease_plotter)
-			# print()
-		print("mutationlist", disease_plotter[0])
-		print()
 
+		# sick percentage per social group per timestep
 		lowS_sick = [x / model.lowS for x in low_sociability]
 		middleS_sick = [x / model.middleS for x in middle_sociability]
 		highS_sick = [x / model.highS for x in high_sociability]
@@ -69,8 +66,6 @@ def disease_graph(models, steps):
 		# store for averaging
 		diseased_avg += [diseased]
 		lowS_sick_avg += [lowS_sick]
-
-		
 		middleS_sick_avg += [middleS_sick]
 		highS_sick_avg += [highS_sick]
 		lowS_avg += [model.lowS]
@@ -78,14 +73,8 @@ def disease_graph(models, steps):
 		highS_avg += [model.highS]
 		disease_plotter_avg += [disease_plotter]
 		
-	
-
-
-	### calculate averages + plot
+	# calculate averages 
 	diseased_avg = np.mean(np.array(diseased_avg), axis=0)
-	print()
-	print("AVERAGE\n", disease_plotter_avg[0])
-	print()
 	lowS_sick_avg = np.mean(np.array(lowS_sick_avg), axis=0)
 	middleS_sick_avg = np.mean(np.array(middleS_sick_avg), axis=0)
 	highS_sick_avg = np.mean(np.array(highS_sick_avg), axis=0)
@@ -94,33 +83,19 @@ def disease_graph(models, steps):
 	highS_avg = np.mean(highS_avg)
 
 
-	# PSEUDO CODE TIME
-	# JE HEBT DE MAX Lengte # aantal mutaties 
-	# voor die i door alle andere gaan en in nieuwe lijst ?
-	# zodra die klaar is average nemen en in total lijst doen
-	# for model_mutations in disease_plotter_avg:
-	# 	for i in range(0, max_n_mutations)
-
-	# LIJSTEEN MET 0'EN TOEVOEGEN AFHANKELIJK VAN HOE VEEL STAPPEN 
-	# WORDEN GESIMULEERD
-	# ### MEEGEVEN HOE VEEL STAPPEN
-
-
-	# print("big nani", disease_plotter_avg)
-	# max_mutations = max(map(len, disease_plotter_avg))
+	# add mutation list with 0 percentage in models where that mutation didnt occur
 	for mutation_list in disease_plotter_avg:
 		len_mutation = len(mutation_list)
 		if len_mutation < max_n_mutations:
 			mutation_list.extend([[0 for x in range(0, steps)]] * (max_n_mutations - len_mutation))
 	
+	# calculate average occurance of every mutation for every timestep
 	disease_plotter_avg = np.mean(disease_plotter_avg, axis=0)
-	# print(disease_plotter_avg)
-	# disease_plotter_avg = np.mean(np.array(disease_plotter_avg), axis=0)
 
-
+	# total diseased per timestep
 	plt.plot(diseased_avg, color="red", label='total')
 
-	# plot all diseases
+	# plot all mutations per timestep
 	for mutation in disease_plotter_avg:
 		plt.plot(mutation)
 
@@ -130,6 +105,8 @@ def disease_graph(models, steps):
 	plt.show()
 
 	# plot agent sociability
+	axes = plt.gca()
+	axes.set_ylim([0,1])
 	plt.plot(lowS_sick_avg, label='low ' + str(lowS_avg))
 	plt.plot(middleS_sick_avg, label='middle ' + str(middleS_avg))
 	plt.plot(highS_sick_avg, label='high ' + str(highS_avg))
