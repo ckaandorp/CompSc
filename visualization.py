@@ -6,8 +6,8 @@ import numpy as np
 import random
 from scipy import stats
 
-def t_test(a,b):
-	t, p = stats.ttest_ind(a,b)
+def t_test(a, b):
+	t, p = stats.ttest_ind(a, b)
 	print('t', t)
 	print('p', p)
 	return "t_value= " + str(t) +"  p_value= " + str(p)
@@ -107,30 +107,12 @@ def disease_graph(models, steps):
 	middleS_avg = np.mean(middleS_avg)
 	highS_avg = np.mean(highS_avg)
 
-
-	# PSEUDO CODE TIME
-	# JE HEBT DE MAX Lengte # aantal mutaties
-	# voor die i door alle andere gaan en in nieuwe lijst ?
-	# zodra die klaar is average nemen en in total lijst doen
-	# for model_mutations in disease_plotter_avg:
-	# 	for i in range(0, max_n_mutations)
-
-	# LIJSTEEN MET 0'EN TOEVOEGEN AFHANKELIJK VAN HOE VEEL STAPPEN
-	# WORDEN GESIMULEERD
-	# ### MEEGEVEN HOE VEEL STAPPEN
-
-
-	# print("big nani", disease_plotter_avg)
-	# max_mutations = max(map(len, disease_plotter_avg))
 	for mutation_list in disease_plotter_avg:
 		len_mutation = len(mutation_list)
 		if len_mutation < max_n_mutations:
 			mutation_list.extend([[0 for x in range(0, steps)]] * (max_n_mutations - len_mutation))
 
 	disease_plotter_avg = np.mean(disease_plotter_avg, axis=0)
-	# print(disease_plotter_avg)
-	# disease_plotter_avg = np.mean(np.array(disease_plotter_avg), axis=0)
-
 
 	plt.plot(diseased_avg, color="red", label='total')
 
