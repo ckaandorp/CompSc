@@ -56,7 +56,7 @@ class DiseaseAgent(Agent):
 			self.goal = self.roster[1]
 			if self.pos != self.goal:
 				self.path = []
-		elif self.model.counter%1440 == 541:
+		elif 700 > self.model.counter%1440 > 540:
 			self.goal = self.roster[0]
 			self.path = []
 		if self.pos != self.goal:
