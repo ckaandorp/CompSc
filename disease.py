@@ -143,35 +143,36 @@ class DiseaseModel(Model):
                 self.grid.place_agent(brick, (x, heightRooms))
                 self.grid.place_agent(brick, (x, heightRooms + heightHall - 1))
 
-	def addAgents(self, n, startID, sociability):
-		"""
-		Add agents with a sociability.
-		n: number of agents
-		startID: ID of the first added agent
-		sociability: sociability of the agents
-		"""
-		disease_list = np.random.randint(0, 2, n)
-		for i in range(n):
-			if self.edu_setting == True:
-				a_roster = []
-				rosterNumber = self.random.randrange(len(self.roster))
-				rooms = self.roster[rosterNumber]
-				for roomNumber in range(len(rooms)):
-					loc = self.random.choice(rooms[roomNumber])
-					a_roster += [loc]
-					(self.roster[rosterNumber][roomNumber]).remove(loc)
-			else:
-				a_roster = []
-			a = DiseaseAgent(i + startID, sociability, self, disease_list[i], a_roster)
-			self.schedule.add(a)
-			# Add the agent to a random grid cell
-			location = self.grid.find_empty()
-			self.removed += [a]
-			a.pos = None
-	def step(self):
-		"""
-		Continue one step in simulation.
-		"""
-		self.counter += 1
-		self.datacollector.collect(self)
-		self.schedule.step()
+    def addAgents(self, n, startID, sociability):
+        """
+        Add agents with a sociability.
+        n: number of agents
+        startID: ID of the first added agent
+        sociability: sociability of the agents
+        """
+        disease_list = np.random.randint(0, 2, n)
+        for i in range(n):
+            if self.edu_setting == True:
+                a_roster = []
+                rosterNumber = self.random.randrange(len(self.roster))
+                rooms = self.roster[rosterNumber]
+                for roomNumber in range(len(rooms)):
+                    loc = self.random.choice(rooms[roomNumber])
+                    a_roster += [loc]
+                    (self.roster[rosterNumber][roomNumber]).remove(loc)
+            else:
+                a_roster = []
+            a = DiseaseAgent(i + startID, sociability, self, disease_list[i], a_roster)
+            self.schedule.add(a)
+            # Add the agent to a random grid cell
+            location = self.grid.find_empty()
+            self.removed += [a]
+            a.pos = None
+
+    def step(self):
+        """
+        Continue one step in simulation.
+        """
+        self.counter += 1
+        self.datacollector.collect(self)
+        self.schedule.step()
