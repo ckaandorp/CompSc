@@ -4,6 +4,7 @@ from disease import DiseaseModel
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+import sys
 from scipy import stats
 
 
@@ -371,6 +372,12 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
                            cureProb, cureProbFac, mutateProb, diseaseRate)
 
 
-F = open("workfile.txt", "w")
-F.write("")
-visualization(50, 50, 10, 10, 10, steps=10, grid=False, edu_setting=False)
+# Run shorter version for demo
+if len(sys.argv) == 2 and sys.argv[1] == "-d":
+    F = open("workfile.txt", "w")
+    F.write("")
+    visualization(50, 50, 10, 10, 10, steps=10, grid=False, edu_setting=False)
+else:
+    F = open("workfile.txt", "w")
+    F.write("")
+    visualization(50, 50, 10, 10, 10, steps=10, grid=False, edu_setting=False)
