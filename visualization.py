@@ -297,6 +297,7 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
 	graphs: if True show graphs.
 	steps: number of steps in graph.
 	"""
+	low,mid,high = (0,0,0)
 	if graphs:
 		# create an average
 		models = []
@@ -309,13 +310,13 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
 				model.step()
 			models += [model]
 
-	low,mid,high = disease_graph(models, steps)
+		low,mid,high = disease_graph(models, steps)
 
 	if grid:
 		visualization_grid(width, height, highS, middleS, lowS, edu_setting,
 							cureProb, cureProbFac, mutateProb, diseaseRate)
 	return low,mid,high
 
-low,mid,high = visualization(50, 50, 10, 10, 10, steps=10,grid= False,edu_setting=False)
-eduLow,eduMid,eduHigh = visualization(50, 50, 10, 10, 10, steps=10,grid = False)
+low,mid,high = visualization(50, 50, 10, 10, 10, steps=10,grid = False,graphs=False,edu_setting=False)
+eduLow,eduMid,eduHigh = visualization(50, 50, 10, 10, 10, steps=10,grid= True)
 graph_edu_non(low,mid,high,eduLow,eduMid,eduHigh)

@@ -63,7 +63,7 @@ def disease_collector(model):
     total_sick = 0
     disease_dict = {}
     social_dict = {'0': 0, '1': 0, '2': 0}
-	resistent_dict = {'0':0, '1':0, '2':0}
+    resistent_dict = {'0':0, '1':0, '2':0}
     n_mutations = 0
     for agent in model.schedule.agents:
         # check if agent has a disease

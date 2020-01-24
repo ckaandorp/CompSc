@@ -35,7 +35,7 @@ class DiseaseModel(Model):
 		self.diseaseRate = diseaseRate
 		self.edu_setting = edu_setting
 		self.maxDisease = 0 # amount of mutations
-		self.counter = 540 # keeps track of timesteps
+		self.counter = 539 # keeps track of timesteps
 		self.removed = []
 		self.exit = (width - 1, floor(height / 2))
 		# Check if agents fit within grid
@@ -71,7 +71,7 @@ class DiseaseModel(Model):
 						location[i] += [(startWidth + currentWidth, height - 1 - j)]
 
 			# Set 3 goals per roster
-			self.roster = [[location[0], location[3], location[1]], 
+			self.roster = [[location[0], location[3], location[1]],
 							[location[5], location[2], location[0]],
 							[location[4], location[1], location[5]]]
 
@@ -163,8 +163,8 @@ class DiseaseModel(Model):
 			self.schedule.add(a)
 			# Add the agent to a random grid cell
 			location = self.grid.find_empty()
-			self.grid.place_agent(a, location)
-
+			self.removed += [a]
+			a.pos = None
 	def step(self):
 		"""
 		Continue one step in simulation.
