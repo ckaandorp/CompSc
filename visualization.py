@@ -144,6 +144,15 @@ def disease_graph(models, steps, edu_setting):
 
     disease_plotter_avg = np.mean(disease_plotter_avg, axis=0)
     plt.plot(diseased_avg, color="red", label='total')
+    # Plot all diseases
+    for mutation in disease_plotter_avg:
+        plt.plot(mutation)
+    axes = plt.gca()
+    axes.set_ylim([0, 1])
+    plt.ylabel("Infected (%)")
+    plt.xlabel("Timesteps")
+    plt.title("Infected agents in " + str(edu_setting) +
+              " educational setting")
     axes = plt.gca()
     axes.set_ylim([0, 1])
     plt.xlabel('Timesteps')
@@ -185,19 +194,6 @@ def disease_graph(models, steps, edu_setting):
     F.write("-----------------------------------------------------------------\
              -----------------------\n\n\n")
 
-    # Plot all diseases
-    i = 0
-    for mutation in disease_plotter_avg:
-        plt.plot(mutation, label="mutation: " + str(i))
-        i += 1
-    axes = plt.gca()
-    axes.set_ylim([0, 1])
-    plt.ylabel("Infected (%)")
-    plt.xlabel("Timesteps")
-    plt.title("Infected agents in " + str(edu_setting) +
-              " educational setting")
-    plt.legend()
-    plt.show()
     # Plot agent sociability
     axes = plt.gca()
     axes.set_ylim([0, 1])
@@ -299,7 +295,7 @@ def agent_portrayal(agent):
 
 def visualization_grid(width, height, highS, middleS, lowS, edu_setting=False,
                        cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050,
-                       diseaseRate=0.38):
+                       diseaseRate=0.2):
     """
     Launch grid visualization on server.
     width: Width of the grid.
@@ -328,7 +324,7 @@ def visualization_grid(width, height, highS, middleS, lowS, edu_setting=False,
 
 def visualization(width, height, highS, middleS, lowS, edu_setting=True,
                   cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050,
-                  diseaseRate=0.38, grid=True, graphs=True, steps=300):
+                  diseaseRate=0.2, grid=True, graphs=True, steps=300):
     """
     Create visualizations.
     width: Width of the grid.
@@ -349,7 +345,7 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
     if graphs:
         # create an average
         models_0, models_1 = [], []
-        for i in range(0, 10):
+        for i in range(0, 3):
             model_0 = DiseaseModel(highS, middleS, lowS, width, height,
                                    edu_setting, cureProb, cureProbFac,
                                    mutateProb, diseaseRate)
@@ -376,7 +372,7 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
 if len(sys.argv) == 2 and sys.argv[1] == "-d":
     F = open("workfile.txt", "w")
     F.write("")
-    visualization(50, 50, 10, 10, 10, steps=10, grid=False, edu_setting=False)
+    visualization(50, 50, 10, 10, 10, steps=10, grid=True, edu_setting=False)
 else:
     F = open("workfile.txt", "w")
     F.write("")
