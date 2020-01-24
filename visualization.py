@@ -157,8 +157,11 @@ def disease_graph(models, steps):
 	plt.show()
 	# plot all diseases
 	for mutation in disease_plotter_avg:
-		plt.plot(mutation)
-
+		plt.plot(mutation, label=("mutation number: " + str(mutation)))
+	plt.ylabel("Infected (%)")
+	plt.xlabel("Timesteps")
+	plt.legend()
+	plt.show()
 
 
 	# plot agent sociability
