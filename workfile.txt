@@ -1,3 +1,3 @@
-low sociability versus middle sociability  t_value = 0.579741  p_value = 0.569275
-low sociability versus high sociability    t_value = -1.272792  p_value = 0.219287
-middle sociability versus high sociability t_value = 2.076923  p_value = 0.052402
+low sociability versus middle sociability  t_value = 2.527452  p_value = 0.021069
+low sociability versus high sociability    t_value = 0.672842  p_value = 0.509594
+middle sociability versus high sociability t_value = 1.28861  p_value = 0.213851
