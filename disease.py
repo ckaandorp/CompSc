@@ -166,8 +166,11 @@ class DiseaseModel(Model):
             self.schedule.add(a)
             # Add the agent to a random grid cell
             location = self.grid.find_empty()
-            self.removed += [a]
-            a.pos = None
+            if self.edu_setting == True:
+                self.removed += [a]
+                a.pos = None
+            else:
+                self.grid.place_agent(a,self.grid.find_empty())
 
     def step(self):
         """
