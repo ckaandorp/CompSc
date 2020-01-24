@@ -22,15 +22,21 @@ def disease_spreader(cellmates, self, distanceFac):
                         # ignore agents on other side of map
                         if (abs(self.pos[0] - other.pos[0]) +
                            abs(self.pos[1] - other.pos[1])) > 5:
+                            # spread disease if chance is met
                             if self.model.diseaseRate * distanceFac > \
                              self.random.random():
                                 other.disease = self.disease
 
 
 def wall_in_the_way(self, other):
-    """Returns True if there is a wall between agents, else false."""
+    """
+    Returns True if there is a wall between agents, else false.
+    other: agent object.
+    """
     difference_x = self.pos[0] - other.pos[0]
     difference_y = self.pos[1] - other.pos[1]
+
+    # check all locations on the x-axis
     for i in range(abs(difference_x)):
         if difference_x < 0:
             i *= -1
@@ -40,6 +46,7 @@ def wall_in_the_way(self, other):
         if cell is not None and isinstance(cell, wall):
             return True
 
+    # check all locations on the y-axis
     for i in range(abs(difference_y)):
         if difference_y < 0:
             i *= -1
@@ -48,6 +55,7 @@ def wall_in_the_way(self, other):
                                                 include_center=True, radius=0)
         if cell is not None and isinstance(cell, wall):
             return True
+
     return False
 
 
@@ -55,16 +63,20 @@ def disease_collector(model):
     """
     Collects disease data from a model.
     Returns:
-    the total percentage of agents that are sick,
-    dictionary containting how many agents are suffering from each disease,
-    number of different mutations and
-    dictionary containing how many agents of each social group are sick.
+    - the total percentage of agents that are sick
+    - dictionary containting how many agents are suffering from each disease
+    - number of different mutations
+    - dictionary containing how many agents of each social group are sick
+    - dictionary containing how many resitancies agents of each social group
+    have.
     """
     total_sick = 0
     disease_dict = {}
     social_dict = {'0': 0, '1': 0, '2': 0}
-    resistent_dict = {'0':0, '1':0, '2':0}
+    resistent_dict = {'0': 0, '1': 0, '2': 0}
     n_mutations = 0
+
+    # Update disease statistics
     for agent in model.schedule.agents:
         # check if agent has a disease
         if agent.disease > 0:
@@ -79,6 +91,7 @@ def disease_collector(model):
             else:
                 disease_dict[agent.disease] = 1
         resistent_dict[str(agent.sociability)] += len(agent.resistent)
+
     # calculate sick percentage per disease
     sum = 0
     for mutation in disease_dict:
@@ -86,7 +99,7 @@ def disease_collector(model):
         sum += disease_dict[mutation]
 
     return (total_sick/model.num_agents, disease_dict, n_mutations,
-            social_dict,resistent_dict)
+            social_dict, resistent_dict)
 
 
 def AStarSearch(start, end, graph):
