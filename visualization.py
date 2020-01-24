@@ -187,9 +187,16 @@ def disease_graph(models, steps, edu_setting):
     print(middleS_resistent)
     print(lowS_resistent)
     # Plot all diseases
+    i = 0
     for mutation in disease_plotter_avg:
-        plt.plot(mutation)
-
+        plt.plot(mutation, label="mutation: " + str(i))
+        i += 1
+    plt.ylabel("Infected (%)")
+    plt.xlabel("Timesteps")
+    plt.title("Infected agents in " + str(edu_setting) +
+              " educational setting")
+    plt.legend()
+    plt.show()
     # Plot agent sociability
     axes = plt.gca()
     axes.set_ylim([0, 1])
