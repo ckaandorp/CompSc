@@ -20,6 +20,9 @@ def disease_graph(models, steps):
 	lowS_sick_avg = []
 	middleS_sick_avg = []
 	highS_sick_avg = []
+	lowS_resistent_avg = []
+	middleS_resistent_avg = []
+	highS_resistent_avg = []
 	lowS_avg = []
 	middleS_avg = []
 	highS_avg = []
@@ -39,6 +42,9 @@ def disease_graph(models, steps):
 		low_sociability = []
 		middle_sociability = []
 		high_sociability = []
+		low_resistent = []
+		middle_resistent = []
+		high_resistent = []
 		n_mutations = 0
 
 
@@ -46,6 +52,10 @@ def disease_graph(models, steps):
 			diseased += [row[0][0]]
 			mutation += [row[0][1]]
 			sociability = row[0][3]
+			resistent = row[0][4]
+			low_resistent += [resistent['0']]
+			middle_resistent += [resistent['1']]
+			high_resistent += [resistent['2']]
 			low_sociability += [sociability['0']]
 			middle_sociability += [sociability['1']]
 			high_sociability += [sociability['2']]
@@ -75,13 +85,20 @@ def disease_graph(models, steps):
 		middleS_sick = [x / model.middleS for x in middle_sociability]
 		highS_sick = [x / model.highS for x in high_sociability]
 
+		lowS_resistent = [x / model.lowS for x in low_resistent]
+		middleS_resistent = [x / model.middleS for x in middle_resistent]
+		highS_resistent = [x / model.highS for x in high_resistent]
 		# store for averaging
 		diseased_avg += [diseased]
+
 		lowS_sick_avg += [lowS_sick]
-
-
 		middleS_sick_avg += [middleS_sick]
 		highS_sick_avg += [highS_sick]
+
+		lowS_resistent_avg += [lowS_resistent]
+		middleS_resistent_avg += [middleS_resistent]
+		highS_resistent_avg += [highS_resistent]
+
 		lowS_avg += [model.lowS]
 		middleS_avg += [model.middleS]
 		highS_avg += [model.highS]
@@ -106,6 +123,11 @@ def disease_graph(models, steps):
 	lowS_sick_avg = np.mean(np.array(lowS_sick_avg), axis=0)
 	middleS_sick_avg = np.mean(np.array(middleS_sick_avg), axis=0)
 	highS_sick_avg = np.mean(np.array(highS_sick_avg), axis=0)
+
+	lowS_resistent_avg = np.mean(np.array(lowS_resistent_avg), axis=0)
+	middleS_resistent_avg = np.mean(np.array(middleS_resistent_avg), axis=0)
+	highS_resistent_avg = np.mean(np.array(highS_resistent_avg), axis=0)
+
 	lowS_avg = np.mean(lowS_avg)
 	middleS_avg = np.mean(middleS_avg)
 	highS_avg = np.mean(highS_avg)
@@ -116,19 +138,27 @@ def disease_graph(models, steps):
 			mutation_list.extend([[0 for x in range(0, steps)]] * (max_n_mutations - len_mutation))
 
 	disease_plotter_avg = np.mean(disease_plotter_avg, axis=0)
-
 	plt.plot(diseased_avg, color="red", label='total')
-
-	# plot all diseases
-	for mutation in disease_plotter_avg:
-		plt.plot(mutation)
-
 	axes = plt.gca()
 	axes.set_ylim([0, 1])
 	plt.xlabel('Timesteps')
 	plt.ylabel('Infected (%)')
 	plt.legend()
 	plt.show()
+
+	print(lowS_resistent_avg)
+	plt.plot(lowS_resistent_avg, label='Low sociability, total agents: ' + str(int(lowS_avg)))
+	plt.plot(middleS_resistent_avg,label='Middle sociability, total agents: ' + str(int(middleS_avg)))
+	plt.plot(highS_resistent_avg, label='High sociability, total agents: ' + str(int(highS_avg)) )
+	plt.ylabel("Amount of resistentcy on average per agent")
+	plt.xlabel("Timesteps")
+	plt.legend()
+	plt.show()
+	# plot all diseases
+	for mutation in disease_plotter_avg:
+		plt.plot(mutation)
+
+
 
 	# plot agent sociability
 	axes = plt.gca()
@@ -158,6 +188,8 @@ def graph_edu_non(low,mid,high,edlow,edmid,edhigh):
 	plt.bar(r2, bars2,width=barWidth, edgecolor='white', label='Middle sociability')
 	plt.bar(r3, bars3,width=barWidth, edgecolor='white', label='High sociability')
 
+	axes = plt.gca()
+	axes.set_ylim([0, 1])
 	# Add xticks on the middle of the group bars
 	plt.xlabel('Disease rate per sociability in two settings.', fontweight='bold')
 	plt.xticks([r + barWidth for r in range(len(bars1))], ['Educational', 'Random movement'])
@@ -277,6 +309,6 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
 							cureProb, cureProbFac, mutateProb, diseaseRate)
 	return low,mid,high
 
-low,mid,high = visualization(50, 50, 10, 10, 10, steps=10,grid= False)
-eduLow,eduMid,eduHigh = visualization(50, 50, 10, 10, 10, steps=10,edu_setting=False,grid = False)
+low,mid,high = visualization(50, 50, 10, 10, 10, steps=10,grid= False,edu_setting=False)
+eduLow,eduMid,eduHigh = visualization(50, 50, 10, 10, 10, steps=10,grid = False)
 graph_edu_non(low,mid,high,eduLow,eduMid,eduHigh)
