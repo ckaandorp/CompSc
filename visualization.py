@@ -171,6 +171,8 @@ def disease_graph(models, steps):
 	plt.legend()
 	plt.show()
 	return (np.mean(low_last),np.mean(mid_last),np.mean(high_last))
+
+
 def graph_edu_non(low,mid,high,edlow,edmid,edhigh):
 	# set width of bar
 	barWidth = 0.25
@@ -182,6 +184,10 @@ def graph_edu_non(low,mid,high,edlow,edmid,edhigh):
 	r1 = np.arange(len(bars1))
 	r2 = [x + barWidth for x in r1]
 	r3 = [x + barWidth for x in r2]
+
+    # Set plot dimensions
+	axes = plt.gca()
+	axes.set_ylim([0, 1])
 
 	# Make the plot
 	plt.bar(r1, bars1,width=barWidth, edgecolor='white', label='Low sociability')
