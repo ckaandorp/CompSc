@@ -4,8 +4,8 @@ from wall import wall
 def disease_spreader(cellmates, self, distanceFac):
     """
     Calculates spread of disease to all cellmates.
-    cellmates: list of all objects surrounding the agent
-    self: current agent object
+    cellmates: list of all objects surrounding the agent.
+    self: current agent object.
     distanceFac: factor to multiply the disease spreading rate with based on
                  distance between distance.
     """
@@ -68,7 +68,7 @@ def disease_collector(model):
     - number of different mutations
     - dictionary containing how many agents of each social group are sick
     - dictionary containing how many resitancies agents of each social group
-    have.
+        have.
     """
     total_sick = 0
     disease_dict = {}
@@ -76,7 +76,7 @@ def disease_collector(model):
     resistent_dict = {'0': 0, '1': 0, '2': 0}
     n_mutations = 0
 
-    # Update disease statistics
+    # update disease statistics
     for agent in model.schedule.agents:
         # check if agent has a disease
         if agent.disease > 0:
@@ -93,12 +93,12 @@ def disease_collector(model):
         resistent_dict[str(agent.sociability)] += len(agent.resistent)
 
     # calculate sick percentage per disease
-    sum = 0
+    total = 0
     for mutation in disease_dict:
         disease_dict[mutation] /= model.num_agents
-        sum += disease_dict[mutation]
+        total += disease_dict[mutation]
 
-    return (total_sick/model.num_agents, disease_dict, n_mutations,
+    return (total_sick / model.num_agents, disease_dict, n_mutations,
             social_dict, resistent_dict)
 
 
