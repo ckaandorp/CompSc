@@ -63,6 +63,7 @@ def disease_collector(model):
     total_sick = 0
     disease_dict = {}
     social_dict = {'0': 0, '1': 0, '2': 0}
+	resistent_dict = {'0':0, '1':0, '2':0}
     n_mutations = 0
     for agent in model.schedule.agents:
         # check if agent has a disease
@@ -77,7 +78,7 @@ def disease_collector(model):
                 disease_dict[agent.disease] += 1
             else:
                 disease_dict[agent.disease] = 1
-
+        resistent_dict[str(agent.sociability)] += len(agent.resistent)
     # calculate sick percentage per disease
     sum = 0
     for mutation in disease_dict:
@@ -85,7 +86,7 @@ def disease_collector(model):
         sum += disease_dict[mutation]
 
     return (total_sick/model.num_agents, disease_dict, n_mutations,
-            social_dict)
+            social_dict,resistent_dict)
 
 
 def AStarSearch(start, end, graph):
@@ -110,32 +111,32 @@ def AStarSearch(start, end, graph):
                 currentFscore = F[pos]
                 current = pos
 
-        #Check if we have reached the goal
+        # Check if we have reached the goal
         if current == end:
-            #Retrace our route backward
+            # Retrace our route backward
             path = [current]
             while current in cameFrom:
                 current = cameFrom[current]
                 path.append(current)
             path.reverse()
-            return path[1:] #Done!
+            return path[1:]  # Done!
 
-        #Mark the current vertex as closed
+        # Mark the current vertex as closed
         openVertices.remove(current)
         closedVertices.add(current)
 
-        #Update scores for vertices near the current position
+        # Update scores for vertices near the current position
         for neighbor in graph.get_vertex_neighbors(current):
             if neighbor in closedVertices:
-                continue #We have already processed this node exhaustively
+                continue  # We have already processed this node exhaustively
             candidateG = G[current] + graph.move_cost(neighbor)
 
             if neighbor not in openVertices:
-                openVertices.add(neighbor) #Discovered a new vertex
+                openVertices.add(neighbor)  # Discovered a new vertex
             elif candidateG >= G[neighbor]:
-                continue #This G score is worse than previously found
+                continue  # This G score is worse than previously found
 
-            #Adopt this G score
+            # Adopt this G score
             cameFrom[neighbor] = current
             G[neighbor] = candidateG
             H = graph.heuristic(neighbor, end)
