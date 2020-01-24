@@ -9,7 +9,7 @@ from scipy import stats
 
 def t_test(a, b):
     t, p = stats.ttest_ind(a, b)
-    return "t_value = " + str(round(t, 6)) + "  p_value = " + str(round(p, 6))
+    return "t_value = " + str(round(t, 6)) + "\tp_value = " + str(round(p, 6))
 
 
 def disease_graph(models, steps, edu_setting):
@@ -101,14 +101,23 @@ def disease_graph(models, steps, edu_setting):
         mid_last += [middle_sociability[-1]/model.middleS]
         high_last += [high_sociability[-1]/model.highS]
 
-    F = open("workfile.txt", "w")
-    F.write("The current educational setting is " + str(edu_setting) + "\n")
-    F.write("Low sociability versus middle sociability  " +
+    F = open("workfile.txt", "a")
+    F.write("Comparing the means of the percentage of infected agents at the last timestep: \n")
+    F.write("The current educational setting is " + str(edu_setting) + "\n\n")
+    F.write("Percentage infected agents low sociability \t\t" + 
+            str(np.mean(low_last)) + "\n")
+    F.write("Percentage infected agents middle sociability \t" + 
+            str(np.mean(mid_last)) + "\n")
+    F.write("Percentage infected agents high sociability \t" + 
+            str(np.mean(high_last)) + "\n\n")
+    F.write("Low sociability versus middle sociability \t" +
             t_test(low_last, mid_last) + "\n")
-    F.write("Mow sociability versus high sociability    " +
+    F.write("Low sociability versus high sociability \t" +
             t_test(low_last, high_last) + "\n")
-    F.write("Middle sociability versus high sociability " +
+    F.write("Middle sociability versus high sociability \t" +
             t_test(high_last, mid_last) + "\n")
+    F.write("----------------------------------------------------------------------------------------\n\n")
+
 
     # Calculate averages + plot
     diseased_avg = np.mean(np.array(diseased_avg), axis=0)
@@ -154,6 +163,26 @@ def disease_graph(models, steps, edu_setting):
               " educational setting")
     plt.legend()
     plt.show()
+
+    F = open("workfile.txt", "a")
+    F.write("Comparing the means of the average resistance of agents at the last timestep: \n")
+    F.write("The current educational setting is " + str(edu_setting) + "\n\n")
+    F.write("Percentage infected agents low sociability \t\t" +
+            str(np.mean(lowS_resistent)) + "\n")
+    F.write("Percentage infected agents middle sociability \t" +
+            str(np.mean(middleS_resistent)) + "\n")
+    F.write("Percentage infected agents high sociability \t" +
+            str(np.mean(highS_resistent)) + "\n\n")
+    F.write("Low sociability versus middle sociability \t" +
+            t_test(lowS_resistent, middleS_resistent) + "\n")
+    F.write("Low sociability versus high sociability \t" +
+            t_test(lowS_resistent, highS_resistent) + "\n")
+    F.write("Middle sociability versus high sociability \t" +
+            t_test(highS_resistent, middleS_resistent) + "\n")
+    F.write("----------------------------------------------------------------------------------------\n\n\n")
+    print(highS_resistent)
+    print(middleS_resistent)
+    print(lowS_resistent)
     # Plot all diseases
     for mutation in disease_plotter_avg:
         plt.plot(mutation)
@@ -288,7 +317,7 @@ def visualization_grid(width, height, highS, middleS, lowS, edu_setting=False,
 
 def visualization(width, height, highS, middleS, lowS, edu_setting=True,
                   cureProb=0.1, cureProbFac=2/1440, mutateProb=0.0050,
-                  diseaseRate=0.38, grid=True, graphs=True, box_plot=True, steps=300):
+                  diseaseRate=0.38, grid=True, graphs=True, steps=300):
     """
     Create visualizations.
     width: Width of the grid.
@@ -332,4 +361,6 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
                            cureProb, cureProbFac, mutateProb, diseaseRate)
 
 
+F = open("workfile.txt", "w")
+F.write("")
 visualization(50, 50, 10, 10, 10, steps=10, grid=False, edu_setting=False)
