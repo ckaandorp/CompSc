@@ -183,14 +183,14 @@ def disease_graph(models, steps, edu_setting):
             t_test(highS_resistent, middleS_resistent) + "\n")
     F.write("-----------------------------------------------------------------\
              -----------------------\n\n\n")
-    print(highS_resistent)
-    print(middleS_resistent)
-    print(lowS_resistent)
+
     # Plot all diseases
     i = 0
     for mutation in disease_plotter_avg:
         plt.plot(mutation, label="mutation: " + str(i))
         i += 1
+    axes = plt.gca()
+    axes.set_ylim([0, 1])
     plt.ylabel("Infected (%)")
     plt.xlabel("Timesteps")
     plt.title("Infected agents in " + str(edu_setting) +
@@ -239,8 +239,6 @@ def graph_edu_non(low_0, mid_0, high_0, low_1, mid_1, high_1, edu_setting):
     plt.bar(r3, bars3, width=barWidth, edgecolor='white',
             label='High sociability')
 
-    axes = plt.gca()
-    axes.set_ylim([0, 1])
     # Add xticks on the middle of the group bars
     plt.xlabel('Disease rate per sociability in two settings',
                fontweight='bold')
@@ -249,6 +247,8 @@ def graph_edu_non(low_0, mid_0, high_0, low_1, mid_1, high_1, edu_setting):
                 'Educational setting ' + str(not edu_setting)])
 
     # Create legend & Show graphic
+    plt.ylabel("Infected (%)")
+    plt.title("Infected agents at the last timestep")
     plt.legend()
     plt.show()
 
