@@ -63,6 +63,7 @@ def disease_collector(model):
     total_sick = 0
     disease_dict = {}
     social_dict = {'0': 0, '1': 0, '2': 0}
+	resistent_dict = {'0':0, '1':0, '2':0}
     n_mutations = 0
     for agent in model.schedule.agents:
         # check if agent has a disease
@@ -77,7 +78,7 @@ def disease_collector(model):
                 disease_dict[agent.disease] += 1
             else:
                 disease_dict[agent.disease] = 1
-
+        resistent_dict[str(agent.sociability)] += len(agent.resistent)
     # calculate sick percentage per disease
     sum = 0
     for mutation in disease_dict:
@@ -85,7 +86,7 @@ def disease_collector(model):
         sum += disease_dict[mutation]
 
     return (total_sick/model.num_agents, disease_dict, n_mutations,
-            social_dict)
+            social_dict,resistent_dict)
 
 
 def AStarSearch(start, end, graph):
