@@ -95,9 +95,9 @@ def disease_graph(models, steps):
 		print(high_last)
 
 	F = open("workfile.txt","w")
-	F.write("low sociability versus mid sociability  " + t_test(low_last,mid_last) + "\n")
-	F.write("low sociability versus high sociability " + t_test(low_last,high_last)+ "\n")
-	F.write("mid sociability versus high sociability " + t_test(high_last,mid_last)+ "\n")
+	F.write("low sociability versus middle sociability  " + t_test(low_last,mid_last) + "\n")
+	F.write("low sociability versus high sociability    " + t_test(low_last,high_last)+ "\n")
+	F.write("middle sociability versus high sociability " + t_test(high_last,mid_last)+ "\n")
 	### calculate averages + plot
 	diseased_avg = np.mean(np.array(diseased_avg), axis=0)
 	print()
@@ -134,7 +134,7 @@ def disease_graph(models, steps):
 	axes = plt.gca()
 	axes.set_ylim([0, 1])
 	plt.plot(lowS_sick_avg, label='Low sociability, total agents: ' + str(int(lowS_avg)))
-	plt.plot(middleS_sick_avg, label='Average sociability, total agents: ' + str(int(middleS_avg)))
+	plt.plot(middleS_sick_avg, label='Middle sociability, total agents: ' + str(int(middleS_avg)))
 	plt.plot(highS_sick_avg, label='High sociability, total agents: ' + str(int(highS_avg)))
 	plt.ylabel("Infected (%)")
 	plt.xlabel("Timesteps")
@@ -155,7 +155,7 @@ def graph_edu_non(low,mid,high,edlow,edmid,edhigh):
 
 	# Make the plot
 	plt.bar(r1, bars1,width=barWidth, edgecolor='white', label='Low sociability')
-	plt.bar(r2, bars2,width=barWidth, edgecolor='white', label='Average sociability')
+	plt.bar(r2, bars2,width=barWidth, edgecolor='white', label='Middle sociability')
 	plt.bar(r3, bars3,width=barWidth, edgecolor='white', label='High sociability')
 
 	# Add xticks on the middle of the group bars
