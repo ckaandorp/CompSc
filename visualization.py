@@ -10,7 +10,7 @@ def t_test(a, b):
 	t, p = stats.ttest_ind(a, b)
 	print('t', t)
 	print('p', p)
-	return "t_value= " + str(t) +"  p_value= " + str(p)
+	return "t_value = " + str(round(t,6)) +"  p_value = " + str(round(p,6))
 
 def disease_graph(models, steps):
 	""""
@@ -87,14 +87,17 @@ def disease_graph(models, steps):
 		highS_avg += [model.highS]
 		disease_plotter_avg += [disease_plotter]
 
-		low_last += [low_sociability[-1]]
-		mid_last += [middle_sociability[-1]]
-		high_last += [high_sociability[-1]]
+		low_last += [low_sociability[-1]/model.lowS]
+		mid_last += [middle_sociability[-1]/model.middleS]
+		high_last += [high_sociability[-1]/model.highS]
+		print(low_last)
+		print(mid_last)
+		print(high_last)
 
 	F = open("workfile.txt","w")
-	F.write("low_versus_mid " + t_test(low_last,mid_last) + "\n")
-	F.write("low_versus_high " + t_test(low_last,high_last)+ "\n")
-	F.write("mid_versus_high " + t_test(high_last,mid_last)+ "\n")
+	F.write("low sociability versus middle sociability  " + t_test(low_last,mid_last) + "\n")
+	F.write("low sociability versus high sociability    " + t_test(low_last,high_last)+ "\n")
+	F.write("middle sociability versus high sociability " + t_test(high_last,mid_last)+ "\n")
 	### calculate averages + plot
 	diseased_avg = np.mean(np.array(diseased_avg), axis=0)
 	print()
@@ -130,14 +133,38 @@ def disease_graph(models, steps):
 	# plot agent sociability
 	axes = plt.gca()
 	axes.set_ylim([0, 1])
-	plt.plot(lowS_sick_avg, label='low ' + str(lowS_avg))
-	plt.plot(middleS_sick_avg, label='middle ' + str(middleS_avg))
-	plt.plot(highS_sick_avg, label='high ' + str(highS_avg))
+	plt.plot(lowS_sick_avg, label='Low sociability, total agents: ' + str(int(lowS_avg)))
+	plt.plot(middleS_sick_avg, label='Middle sociability, total agents: ' + str(int(middleS_avg)))
+	plt.plot(highS_sick_avg, label='High sociability, total agents: ' + str(int(highS_avg)))
 	plt.ylabel("Infected (%)")
 	plt.xlabel("Timesteps")
 	plt.legend()
 	plt.show()
+	return (np.mean(low_last),np.mean(mid_last),np.mean(high_last))
+def graph_edu_non(low,mid,high,edlow,edmid,edhigh):
+	# set width of bar
+	barWidth = 0.25
+	bars1 = [edlow, low]
+	bars2 = [edmid, mid]
+	bars3 = [edhigh,high]
 
+	# Set position of bar on X axis
+	r1 = np.arange(len(bars1))
+	r2 = [x + barWidth for x in r1]
+	r3 = [x + barWidth for x in r2]
+
+	# Make the plot
+	plt.bar(r1, bars1,width=barWidth, edgecolor='white', label='Low sociability')
+	plt.bar(r2, bars2,width=barWidth, edgecolor='white', label='Middle sociability')
+	plt.bar(r3, bars3,width=barWidth, edgecolor='white', label='High sociability')
+
+	# Add xticks on the middle of the group bars
+	plt.xlabel('Disease rate per sociability in two settings.', fontweight='bold')
+	plt.xticks([r + barWidth for r in range(len(bars1))], ['Educational', 'Random movement'])
+
+	# Create legend & Show graphic
+	plt.legend()
+	plt.show()
 
 def color_maker():
 	"""Returns a list of colors."""
@@ -238,16 +265,18 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
 			model = DiseaseModel(highS, middleS, lowS, width, height,
 								edu_setting, cureProb, cureProbFac,
 								mutateProb, diseaseRate)
-	for j in range(steps):
-		print(j)
-		model.step()
-	models += [model]
+			for j in range(steps):
+				print(j)
+				model.step()
+			models += [model]
 
-	disease_graph(models, steps)
+	low,mid,high = disease_graph(models, steps)
 
 	if grid:
 		visualization_grid(width, height, highS, middleS, lowS, edu_setting,
 							cureProb, cureProbFac, mutateProb, diseaseRate)
+	return low,mid,high
 
-
-visualization(50, 50, 10, 10, 10, steps=10, grid=True)
+low,mid,high = visualization(50, 50, 10, 10, 10, steps=10,grid= False)
+eduLow,eduMid,eduHigh = visualization(50, 50, 10, 10, 10, steps=10,edu_setting=False,grid = False)
+graph_edu_non(low,mid,high,eduLow,eduMid,eduHigh)
