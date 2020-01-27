@@ -1,50 +1,50 @@
-Comparing the means of the percentage of infected agents at the            last timestep: 
+Comparing the means of the percentage of infected agents at the last timestep: 
 The current educational setting is False
 
-Percentage infected agents low sociability 		0.9
-Percentage infected agents middle sociability 	1.0
-Percentage infected agents high sociability 	1.0
+Percentage infected agents low sociability 		0.6000000000000001
+Percentage infected agents middle sociability 	0.55
+Percentage infected agents high sociability 	0.6
+
+Low sociability versus middle sociability 	t_value = 0.242536	p_value = 0.830969
+Low sociability versus high sociability 	t_value = 0.0	p_value = 1.0
+Middle sociability versus high sociability 	t_value = 1.0	p_value = 0.42265
+----------------------------------------------------------------------------------------
+
+Comparing the means of the average resistance of agents at the last timestep: 
+The current educational setting is False
+
+Average resistance of agents low sociability 		0.0
+Average resistance of agents middle sociability 	0.0
+Average resistance of agents high sociability 		0.0
 
 Low sociability versus middle sociability 	t_value = nan	p_value = nan
 Low sociability versus high sociability 	t_value = nan	p_value = nan
 Middle sociability versus high sociability 	t_value = nan	p_value = nan
------------------------------------------------------------------             -----------------------
-
-Comparing the means of the average resistance of agents at the             last timestep: 
-The current educational setting is False
-
-Percentage infected agents low sociability 		0.050710000000000005
-Percentage infected agents middle sociability 	0.0
-Percentage infected agents high sociability 	0.03849
-
-Low sociability versus middle sociability 	t_value = 101.425155	p_value = 0.0
-Low sociability versus high sociability 	t_value = 17.515321	p_value = 0.0
-Middle sociability versus high sociability 	t_value = 79.100527	p_value = 0.0
------------------------------------------------------------------             -----------------------
+---------------------------------------------------------------------------------------
 
 
-Comparing the means of the percentage of infected agents at the            last timestep: 
+Comparing the means of the percentage of infected agents at the last timestep: 
 The current educational setting is True
 
-Percentage infected agents low sociability 		1.0
-Percentage infected agents middle sociability 	1.0
-Percentage infected agents high sociability 	1.0
+Percentage infected agents low sociability 		0.65
+Percentage infected agents middle sociability 	0.5
+Percentage infected agents high sociability 	0.7
+
+Low sociability versus middle sociability 	t_value = 0.83205	p_value = 0.492907
+Low sociability versus high sociability 	t_value = -0.333333	p_value = 0.770584
+Middle sociability versus high sociability 	t_value = 2.0	p_value = 0.183503
+----------------------------------------------------------------------------------------
+
+Comparing the means of the average resistance of agents at the last timestep: 
+The current educational setting is True
+
+Average resistance of agents low sociability 		0.0
+Average resistance of agents middle sociability 	0.0
+Average resistance of agents high sociability 		0.0
 
 Low sociability versus middle sociability 	t_value = nan	p_value = nan
 Low sociability versus high sociability 	t_value = nan	p_value = nan
 Middle sociability versus high sociability 	t_value = nan	p_value = nan
------------------------------------------------------------------             -----------------------
-
-Comparing the means of the average resistance of agents at the             last timestep: 
-The current educational setting is True
-
-Percentage infected agents low sociability 		0.0
-Percentage infected agents middle sociability 	0.0
-Percentage infected agents high sociability 	0.03928000000000001
-
-Low sociability versus middle sociability 	t_value = nan	p_value = nan
-Low sociability versus high sociability 	t_value = -80.42631	p_value = 0.0
-Middle sociability versus high sociability 	t_value = 80.42631	p_value = 0.0
------------------------------------------------------------------             -----------------------
+---------------------------------------------------------------------------------------
 
 

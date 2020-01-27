@@ -13,7 +13,7 @@ def t_test(a, b):
     return "t_value = " + str(round(t, 6)) + "\tp_value = " + str(round(p, 6))
 
 
-def disease_graph(model, steps, edu_setting):
+def disease_graph(models, steps, edu_setting):
     """"
     Plots progress of disease given a model.
     """
@@ -34,72 +34,65 @@ def disease_graph(model, steps, edu_setting):
     max_n_mutations = 0
 
 
-    # get dataframe
-    df = model.datacollector.get_model_vars_dataframe()
-    # initialize store vars
-    diseased = []
-    mutation = []
-    low_sociability = []
-    middle_sociability = []
-    high_sociability = []
-    low_resistent = []
-    middle_resistent = []
-    high_resistent = []
-    n_mutations = 0
-
-    for index, row in df.iterrows():
-        diseased += [row[0][0]]
-        mutation += [row[0][1]]
-        sociability = row[0][3]
-        resistent = row[0][4]
-        low_resistent += [resistent['0']]
-        middle_resistent += [resistent['1']]
-        high_resistent += [resistent['2']]
-        low_sociability += [sociability['0']]
-        middle_sociability += [sociability['1']]
-        high_sociability += [sociability['2']]
-        if row[0][2] > n_mutations:
-            n_mutations = row[0][2]
-            if n_mutations > max_n_mutations:
-                max_n_mutations = n_mutations
-
-    # collect all diseases
-    disease_plotter = []
-    for _ in range(n_mutations):
-        disease_plotter += [[]]
-    for j in range(len(mutation)):
-        for i in range(n_mutations):
-            if i+1 in mutation[j]:
-                disease_plotter[i] += [mutation[j][i+1]]
-            else:
-                disease_plotter[i] += [0]
-
-    lowS_sick = [x / model.lowS for x in low_sociability]
-    middleS_sick = [x / model.middleS for x in middle_sociability]
-    highS_sick = [x / model.highS for x in high_sociability]
-
-    lowS_resistent = [x / model.lowS for x in low_resistent]
-    middleS_resistent = [x / model.middleS for x in middle_resistent]
-    highS_resistent = [x / model.highS for x in high_resistent]
-    # store for averaging
-    diseased_avg += [diseased]
-
-    lowS_sick_avg += [lowS_sick]
-    middleS_sick_avg += [middleS_sick]
-    highS_sick_avg += [highS_sick]
-
-    lowS_resistent_avg += [lowS_resistent]
-    middleS_resistent_avg += [middleS_resistent]
-    highS_resistent_avg += [highS_resistent]
-
-    lowS_avg += [model.lowS]
-    middleS_avg += [model.middleS]
-    highS_avg += [model.highS]
-    disease_plotter_avg += [disease_plotter]
-
-    low_last += [low_sociability[-1]/model.lowS]
-    mid_last += [middle_sociability[-1]/model.middleS]
-    high_last += [high_sociability[-1]/model.highS]
+    for model in models:
+        # get dataframe
+        df = model.datacollector.get_model_vars_dataframe()
+        # initialize store vars
+        diseased = []
+        mutation = []
+        low_sociability = []
+        middle_sociability = []
+        high_sociability = []
+        low_resistent = []
+        middle_resistent = []
+        high_resistent = []
+        n_mutations = 0
+        for index, row in df.iterrows():
+            diseased += [row[0][0]]
+            mutation += [row[0][1]]
+            sociability = row[0][3]
+            resistent = row[0][4]
+            low_resistent += [resistent['0']]
+            middle_resistent += [resistent['1']]
+            high_resistent += [resistent['2']]
+            low_sociability += [sociability['0']]
+            middle_sociability += [sociability['1']]
+            high_sociability += [sociability['2']]
+            if row[0][2] > n_mutations:
+                n_mutations = row[0][2]
+                if n_mutations > max_n_mutations:
+                    max_n_mutations = n_mutations
+        # collect all diseases
+        disease_plotter = []
+        for _ in range(n_mutations):
+            disease_plotter += [[]]
+        for j in range(len(mutation)):
+            for i in range(n_mutations):
+                if i+1 in mutation[j]:
+                    disease_plotter[i] += [mutation[j][i+1]]
+                else:
+                    disease_plotter[i] += [0]
+        lowS_sick = [x / model.lowS for x in low_sociability]
+        middleS_sick = [x / model.middleS for x in middle_sociability]
+        highS_sick = [x / model.highS for x in high_sociability]
+        lowS_resistent = [x / model.lowS for x in low_resistent]
+        middleS_resistent = [x / model.middleS for x in middle_resistent]
+        highS_resistent = [x / model.highS for x in high_resistent]
+        # store for averaging
+        diseased_avg += [diseased]
+        lowS_sick_avg += [lowS_sick]
+        middleS_sick_avg += [middleS_sick]
+        highS_sick_avg += [highS_sick]
+        lowS_resistent_avg += [lowS_resistent]
+        middleS_resistent_avg += [middleS_resistent]
+        highS_resistent_avg += [highS_resistent]
+        lowS_avg += [model.lowS]
+        middleS_avg += [model.middleS]
+        highS_avg += [model.highS]
+        disease_plotter_avg += [disease_plotter]
+        low_last += [low_sociability[-1]/model.lowS]
+        mid_last += [middle_sociability[-1]/model.middleS]
+        high_last += [high_sociability[-1]/model.highS]
 
     F = open("workfile.txt", "a")
     F.write("Comparing the means of the percentage of infected agents at")
@@ -344,7 +337,7 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
     if graphs:
         # create an average
         models_0, models_1 = [], []
-        for i in range(0, 1):
+        for i in range(0, 2):
             model_0 = DiseaseModel(highS, middleS, lowS, width, height,
                                    edu_setting, cureProb, cureProbFac,
                                    mutateProb, diseaseRate)
@@ -355,10 +348,11 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
                 print(j)
                 model_0.step()
                 model_1.step()
-
+            models_0 += [model_0]
+            models_1 += [model_1]
         print(models_0)
-        low_0, mid_0, high_0 = disease_graph(model_0, steps, edu_setting)
-        low_1, mid_1, high_1 = disease_graph(model_1, steps, not edu_setting)
+        low_0, mid_0, high_0 = disease_graph(models_0, steps, edu_setting)
+        low_1, mid_1, high_1 = disease_graph(models_1, steps, not edu_setting)
         graph_edu_non(low_0, mid_0, high_0, low_1, mid_1, high_1, edu_setting)
 
     if grid:
@@ -374,6 +368,6 @@ if len(sys.argv) == 2 and sys.argv[1] == "-d":
 else:
     F = open("workfile.txt", "w")
     F.write("")
-    visualization(50, 50, 10, 10, 10, steps=20000, edu_setting=False, \
+    visualization(50, 50, 10, 10, 10, steps=200, edu_setting=False, \
 	                  cureProb=0.2, cureProbFac=2/1440, mutateProb=0.0000050, \
 	                  diseaseRate=0.02, grid=False, graphs=True)
