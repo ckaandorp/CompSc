@@ -102,8 +102,8 @@ def disease_graph(model, steps, edu_setting):
     high_last += [high_sociability[-1]/model.highS]
 
     F = open("workfile.txt", "a")
-    F.write("Comparing the means of the percentage of infected agents at the\
-            last timestep: \n")
+    F.write("Comparing the means of the percentage of infected agents at")
+    F.write(" the last timestep: \n")
     F.write("The current educational setting is " + str(edu_setting) + "\n\n")
     F.write("Percentage infected agents low sociability \t\t" +
             str(np.mean(low_last)) + "\n")
@@ -117,8 +117,8 @@ def disease_graph(model, steps, edu_setting):
             t_test(low_last, high_last) + "\n")
     F.write("Middle sociability versus high sociability \t" +
             t_test(high_last, mid_last) + "\n")
-    F.write("-----------------------------------------------------------------\
-             -----------------------\n\n")
+    F.write("----------------------------------------------------------------")
+    F.write("------------------------\n\n")
 
     # Calculate averages + plot
     diseased_avg = np.mean(np.array(diseased_avg), axis=0)
@@ -175,14 +175,14 @@ def disease_graph(model, steps, edu_setting):
     plt.show()
 
     F = open("workfile.txt", "a")
-    F.write("Comparing the means of the average resistance of agents at the\
-             last timestep: \n")
+    F.write("Comparing the means of the average resistance of agents at the")
+    F.write(" last timestep: \n")
     F.write("The current educational setting is " + str(edu_setting) + "\n\n")
-    F.write("Percentage infected agents low sociability \t\t" +
+    F.write("Average resistance of agents low sociability \t\t" +
             str(np.mean(lowS_resistent)) + "\n")
-    F.write("Percentage infected agents middle sociability \t" +
+    F.write("Average resistance of agents middle sociability \t" +
             str(np.mean(middleS_resistent)) + "\n")
-    F.write("Percentage infected agents high sociability \t" +
+    F.write("Average resistance of agents high sociability \t\t" +
             str(np.mean(highS_resistent)) + "\n\n")
     F.write("Low sociability versus middle sociability \t" +
             t_test(lowS_resistent, middleS_resistent) + "\n")
@@ -190,8 +190,8 @@ def disease_graph(model, steps, edu_setting):
             t_test(lowS_resistent, highS_resistent) + "\n")
     F.write("Middle sociability versus high sociability \t" +
             t_test(highS_resistent, middleS_resistent) + "\n")
-    F.write("-----------------------------------------------------------------\
-             -----------------------\n\n\n")
+    F.write("----------------------------------------------------------------")
+    F.write("-----------------------\n\n\n")
 
     # Plot agent sociability
     axes = plt.gca()
