@@ -9,7 +9,7 @@ from scipy import stats
 
 
 def t_test(a, b):
-    t, p = stats.ttest_ind(a, b)
+    t, p = stats.ttest_ind(a, b, equal_var= False)
     return "t_value = " + str(round(t, 6)) + "\tp_value = " + str(round(p, 6))
 
 
@@ -35,7 +35,7 @@ def disease_graph(models, steps, edu_setting):
 
 
     for model in models:
-        # get dataframe
+        # get dataframe for all timesteps in the model
         df = model.datacollector.get_model_vars_dataframe()
         # initialize store vars
         diseased = []
@@ -140,13 +140,13 @@ def disease_graph(models, steps, edu_setting):
     for mutation in disease_plotter_avg:
         plt.plot(mutation)
     axes = plt.gca()
-    axes.set_ylim([0, 1])
+    axes.set_ylim([0, 1.1])
     plt.ylabel("Infected (%)")
     plt.xlabel("Timesteps")
     plt.title("Infected agents in " + str(edu_setting) +
               " educational setting")
     axes = plt.gca()
-    axes.set_ylim([0, 1])
+    axes.set_ylim([0, 1.1])
     plt.xlabel('Timesteps')
     plt.ylabel('Infected (%)')
     plt.title("Infected agents in " + str(edu_setting) +
@@ -188,7 +188,7 @@ def disease_graph(models, steps, edu_setting):
 
     # Plot agent sociability
     axes = plt.gca()
-    axes.set_ylim([0, 1])
+    axes.set_ylim([0, 1.1])
     plt.plot(lowS_sick_avg, label='Low sociability, total agents: ' +
              str(int(lowS_avg)))
     plt.plot(middleS_sick_avg, label='Middle sociability, total agents: ' +
@@ -337,7 +337,7 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
     if graphs:
         # create an average
         models_0, models_1 = [], []
-        for i in range(0, 2):
+        for i in range(0, 10):
             model_0 = DiseaseModel(highS, middleS, lowS, width, height,
                                    edu_setting, cureProb, cureProbFac,
                                    mutateProb, diseaseRate)
@@ -345,12 +345,12 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
                                    not edu_setting, cureProb, cureProbFac,
                                    mutateProb, diseaseRate)
             for j in range(steps):
-                print(j)
+                if j%100 == 0:
+                    print(j)
                 model_0.step()
                 model_1.step()
             models_0 += [model_0]
             models_1 += [model_1]
-        print(models_0)
         low_0, mid_0, high_0 = disease_graph(models_0, steps, edu_setting)
         low_1, mid_1, high_1 = disease_graph(models_1, steps, not edu_setting)
         graph_edu_non(low_0, mid_0, high_0, low_1, mid_1, high_1, edu_setting)
@@ -368,6 +368,6 @@ if len(sys.argv) == 2 and sys.argv[1] == "-d":
 else:
     F = open("workfile.txt", "w")
     F.write("")
-    visualization(50, 50, 10, 10, 10, steps=200, edu_setting=False, \
+    visualization(50, 50, 10, 10, 10, steps=30000, edu_setting=False, \
 	                  cureProb=0.2, cureProbFac=2/1440, mutateProb=0.0000050, \
 	                  diseaseRate=0.02, grid=False, graphs=True)
