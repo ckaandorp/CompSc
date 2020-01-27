@@ -376,4 +376,6 @@ if len(sys.argv) == 2 and sys.argv[1] == "-d":
 else:
     F = open("workfile.txt", "w")
     F.write("")
-    visualization(50, 50, 10, 10, 10, steps=10, grid=True, edu_setting=False)
+    visualization(50, 50, 10, 10, 10, steps=300, edu_setting=False, \
+	                  cureProb=0.2, cureProbFac=2/1440, mutateProb=0.000050, \
+	                  diseaseRate=0.02, grid=False, graphs=True)
