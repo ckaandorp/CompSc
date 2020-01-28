@@ -31,8 +31,10 @@ def disease_graph(models, steps, edu_setting):
     low_last = []
     mid_last = []
     high_last = []
+    low_res_last = []
+    mid_res_last = []
+    high_res_last = []
     max_n_mutations = 0
-
 
     for model in models:
         # get dataframe for all timesteps in the model
@@ -172,17 +174,17 @@ def disease_graph(models, steps, edu_setting):
     F.write(" last timestep: \n")
     F.write("The current educational setting is " + str(edu_setting) + "\n\n")
     F.write("Average resistance of agents low sociability \t\t" +
-            str(np.mean(lowS_resistent)) + "\n")
+            str(np.mean(low_res_last)) + "\n")
     F.write("Average resistance of agents middle sociability \t" +
-            str(np.mean(middleS_resistent)) + "\n")
+            str(np.mean(mid_res_last)) + "\n")
     F.write("Average resistance of agents high sociability \t\t" +
-            str(np.mean(highS_resistent)) + "\n\n")
+            str(np.mean(high_res_last)) + "\n\n")
     F.write("Low sociability versus middle sociability \t" +
-            t_test(lowS_resistent, middleS_resistent) + "\n")
+            t_test(low_res_last, mid_res_last) + "\n")
     F.write("Low sociability versus high sociability \t" +
-            t_test(lowS_resistent, highS_resistent) + "\n")
+            t_test(low_res_last, high_res_last) + "\n")
     F.write("Middle sociability versus high sociability \t" +
-            t_test(highS_resistent, middleS_resistent) + "\n")
+            t_test(mid_res_last, high_res_last) + "\n")
     F.write("----------------------------------------------------------------")
     F.write("-----------------------\n\n\n")
 
