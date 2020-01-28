@@ -18,7 +18,8 @@ So please run: <br>
 `pip install -r requirements.txt`<br>
 before runnig our code.
 
-You should get comparable graphs to these when running the demo.
+You should get comparable graphs to these when running the demo. 
+The values of your workfile.txt should be comparable to the one in the main folder.
 But please note they will be slightly different since there is randomness involved in our model.
 ![infect_nonedu_mutations](/Graphs/infect_nonedu_mutations.png)
 ![infect_nonedu_social](/Graphs/infect_nonedu_social.png)
