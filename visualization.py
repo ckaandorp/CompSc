@@ -9,7 +9,7 @@ from scipy import stats
 
 
 def t_test(a, b):
-    t, p = stats.ttest_ind(a, b, equal_var= False)
+    t, p = stats.ttest_ind(a, b, equal_var=False)
     return "t_value = " + str(round(t, 6)) + "\tp_value = " + str(round(p, 6))
 
 
@@ -47,6 +47,8 @@ def disease_graph(models, steps, edu_setting):
         middle_resistent = []
         high_resistent = []
         n_mutations = 0
+
+        # collect model data
         for index, row in df.iterrows():
             diseased += [row[0][0]]
             mutation += [row[0][1]]
@@ -62,6 +64,7 @@ def disease_graph(models, steps, edu_setting):
                 n_mutations = row[0][2]
                 if n_mutations > max_n_mutations:
                     max_n_mutations = n_mutations
+
         # collect all diseases
         disease_plotter = []
         for _ in range(n_mutations):
@@ -78,6 +81,7 @@ def disease_graph(models, steps, edu_setting):
         lowS_resistent = [x / model.lowS for x in low_resistent]
         middleS_resistent = [x / model.middleS for x in middle_resistent]
         highS_resistent = [x / model.highS for x in high_resistent]
+
         # store for averaging
         diseased_avg += [diseased]
         lowS_sick_avg += [lowS_sick]
@@ -94,6 +98,7 @@ def disease_graph(models, steps, edu_setting):
         mid_last += [middle_sociability[-1]/model.middleS]
         high_last += [high_sociability[-1]/model.highS]
 
+    # Write data to textfile
     F = open("workfile.txt", "a")
     F.write("Comparing the means of the percentage of infected agents at")
     F.write(" the last timestep: \n")
@@ -113,7 +118,7 @@ def disease_graph(models, steps, edu_setting):
     F.write("----------------------------------------------------------------")
     F.write("------------------------\n\n")
 
-    # Calculate averages + plot
+    # Calculate averages
     diseased_avg = np.mean(np.array(diseased_avg), axis=0)
 
     lowS_sick_avg = np.mean(np.array(lowS_sick_avg), axis=0)
@@ -136,6 +141,7 @@ def disease_graph(models, steps, edu_setting):
 
     disease_plotter_avg = np.mean(disease_plotter_avg, axis=0)
     plt.plot(diseased_avg, color="red", label='total')
+
     # Plot all diseases
     for mutation in disease_plotter_avg:
         plt.plot(mutation)
@@ -154,6 +160,7 @@ def disease_graph(models, steps, edu_setting):
     plt.legend()
     plt.show()
 
+    # Plot resistance
     plt.plot(lowS_resistent_avg, label='Low sociability, total agents: '
              + str(int(lowS_avg)))
     plt.plot(middleS_resistent_avg, label='Middle sociability, total agents: '
@@ -167,6 +174,7 @@ def disease_graph(models, steps, edu_setting):
     plt.legend()
     plt.show()
 
+    # Write data to textfile
     F = open("workfile.txt", "a")
     F.write("Comparing the means of the average resistance of agents at the")
     F.write(" last timestep: \n")
@@ -261,6 +269,7 @@ def color_maker():
                     color_array += ["#" + hex(R)[2:] + hex(G)[2:] + hex(B)[2:]]
 
     random.shuffle(color_array)
+    # 0th color is always black and healthy
     color_array.insert(0, "#000000")
     return color_array
 
@@ -269,14 +278,18 @@ color_array = color_maker()
 
 
 def agent_portrayal(agent):
+    """Colors and shapes the agent on the grid visualization."""
     portrayal = {"Filled": "true", "Layer": 0, "r": 0.5}
+    # draw agent
     if agent.disease > -1:
         portrayal["Shape"] = "circle"
+        # change shape if agent has reached its goal
         if agent.goal == agent.pos:
             portrayal["r"] = 2
         else:
             portrayal["r"] = 1
         portrayal["Color"] = color_array[agent.disease % len(color_array)]
+    # draw wall
     else:
         portrayal["Shape"] = "rect"
         portrayal["w"] = 1
@@ -335,7 +348,7 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
     steps: number of steps in graph.
     """
     if graphs:
-        # create an average
+        # create an average over different models
         models_0, models_1 = [], []
         for i in range(0, 10):
             model_0 = DiseaseModel(highS, middleS, lowS, width, height,
@@ -345,29 +358,33 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
                                    not edu_setting, cureProb, cureProbFac,
                                    mutateProb, diseaseRate)
             for j in range(steps):
-                if j%100 == 0:
+                # print every 100th step to inform user about progress
+                if j % 100 == 0:
                     print(j)
                 model_0.step()
                 model_1.step()
+
             models_0 += [model_0]
             models_1 += [model_1]
+
         low_0, mid_0, high_0 = disease_graph(models_0, steps, edu_setting)
         low_1, mid_1, high_1 = disease_graph(models_1, steps, not edu_setting)
         graph_edu_non(low_0, mid_0, high_0, low_1, mid_1, high_1, edu_setting)
 
+    # visualization on server
     if grid:
         visualization_grid(width, height, highS, middleS, lowS, edu_setting,
                            cureProb, cureProbFac, mutateProb, diseaseRate)
 
 
-# Run shorter version for demo
+# Run shorter version for demo if d(emo) flag is set
 if len(sys.argv) == 2 and sys.argv[1] == "-d":
     F = open("workfile.txt", "w")
     F.write("")
-    visualization(50, 50, 10, 10, 10, steps=30, grid=True, edu_setting=False)
+    visualization(50, 50, 10, 10, 10, steps=100, grid=True, edu_setting=False)
 else:
     F = open("workfile.txt", "w")
     F.write("")
-    visualization(50, 50, 10, 10, 10, steps=30000, edu_setting=False, \
-	                  cureProb=0.2, cureProbFac=2/1440, mutateProb=0.0000050, \
-	                  diseaseRate=0.02, grid=False, graphs=True)
+    visualization(50, 50, 10, 10, 10, steps=30000, edu_setting=False,
+                  cureProb=0.2, cureProbFac=2/1440, mutateProb=0.0000050,
+                  diseaseRate=0.02, grid=False, graphs=True)
