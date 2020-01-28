@@ -20,10 +20,10 @@ before runnig our code.
 
 You should get comparable graphs to these when running the demo.
 But please note they will be slightly different since there is randomness involved in our model.
-![infect_nonedu_mutations](/Graphs/infect_nonedu_mutations.png =100x100)
-![infect_nonedu_social](/Graphs/infect_nonedu_social.png =100x100)
-![infect_res_nonedu](/Graphs/res_nonedu.png =100x100)
-![infect_edu_mutations](/Graphs/infect_edu_mutations.png =100x100)
-![infect_edu_social](/Graphs/infect_edu_social.png =100x100)
-![res_edu](/Graphs/res_edu.png =100x100)
-![infect_bar](/Graphs/infect_bar.png =100x100)
+![infect_nonedu_mutations](/Graphs/infect_nonedu_mutations.png)
+![infect_nonedu_social](/Graphs/infect_nonedu_social.png)
+![infect_res_nonedu](/Graphs/res_nonedu.png)
+![infect_edu_mutations](/Graphs/infect_edu_mutations.png)
+![infect_edu_social](/Graphs/infect_edu_social.png)
+![res_edu](/Graphs/res_edu.png)
+![infect_bar](/Graphs/infect_bar.png)
