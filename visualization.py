@@ -381,7 +381,7 @@ def visualization(width, height, highS, middleS, lowS, edu_setting=True,
 if len(sys.argv) == 2 and sys.argv[1] == "-d":
     F = open("workfile.txt", "w")
     F.write("")
-    visualization(50, 50, 10, 10, 10, steps=100, grid=True, edu_setting=False)
+    visualization(50, 50, 10, 10, 10, steps=100, grid=True, edu_setting=True)
 else:
     F = open("workfile.txt", "w")
     F.write("")
