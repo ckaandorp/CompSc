@@ -83,6 +83,7 @@ class DiseaseModel(Model):
         self.addAgents(middleS, lowS, 1)
         self.addAgents(highS, lowS + highS, 2)
 
+        # set up data collecter
         self.datacollector = DataCollector(
             model_reporters={"diseasepercentage": disease_collector},
             agent_reporters={"disease": "disease"})
@@ -116,7 +117,7 @@ class DiseaseModel(Model):
         if self.grid.is_cell_empty(location):
             return 1  # Normal movement cost
         else:
-            return 100
+            return 100  # Very difficult to go through walls
 
     def add_walls(self, n, widthGrid, heightGrid):
         """
@@ -152,7 +153,8 @@ class DiseaseModel(Model):
         """
         disease_list = np.random.randint(0, 2, n)
         for i in range(n):
-            if self.edu_setting == True:
+            # Set schedule for every agent if educational setting
+            if self.edu_setting:
                 a_roster = []
                 rosterNumber = self.random.randrange(len(self.roster))
                 rooms = self.roster[rosterNumber]
@@ -162,15 +164,17 @@ class DiseaseModel(Model):
                     (self.roster[rosterNumber][roomNumber]).remove(loc)
             else:
                 a_roster = []
-            a = DiseaseAgent(i + startID, sociability, self, disease_list[i], a_roster)
+
+            a = DiseaseAgent(i + startID, sociability, self, disease_list[i],
+                             a_roster)
             self.schedule.add(a)
-            # Add the agent to a random grid cell
-            location = self.grid.find_empty()
-            if self.edu_setting == True:
+            # Set agent outside grid, ready to enter, if edu setting
+            # else randomly place on empty spot on grid
+            if self.edu_setting:
                 self.removed += [a]
                 a.pos = None
             else:
-                self.grid.place_agent(a,self.grid.find_empty())
+                self.grid.place_agent(a, self.grid.find_empty())
 
     def step(self):
         """
