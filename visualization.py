@@ -90,9 +90,9 @@ def disease_graph(models, steps, edu_setting):
         middleS_avg += [model.middleS]
         highS_avg += [model.highS]
         disease_plotter_avg += [disease_plotter]
-        low_last += [low_sociability[-1]/model.lowS]
-        mid_last += [middle_sociability[-1]/model.middleS]
-        high_last += [high_sociability[-1]/model.highS]
+        low_last += [low_sociability[len(low_sociability)/2]/model.lowS]
+        mid_last += [middle_sociability[len(low_sociability)/2]/model.middleS]
+        high_last += [high_sociability[len(low_sociability)/2]/model.highS]
 
     F = open("workfile.txt", "a")
     F.write("Comparing the means of the percentage of infected agents at")
@@ -368,6 +368,6 @@ if len(sys.argv) == 2 and sys.argv[1] == "-d":
 else:
     F = open("workfile.txt", "w")
     F.write("")
-    visualization(50, 50, 10, 10, 10, steps=30000, edu_setting=False, \
-	                  cureProb=0.2, cureProbFac=2/1440, mutateProb=0.0000050, \
+    visualization(50, 50, 10, 10, 10, steps=30000, edu_setting=True, \
+	                  cureProb=0.2, cureProbFac=2/1440, mutateProb=0.0000030, \
 	                  diseaseRate=0.02, grid=False, graphs=True)

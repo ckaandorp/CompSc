@@ -173,7 +173,7 @@ class DiseaseAgent(Agent):
 
     def step(self):
         """Move and spread disease if sick."""
-        if self.model.counter % 1440 > 540 and self.pos is None:
+        if self.model.counter % 1440 > 540 and self.pos is None and self.model.edu_setting is True:
             if self.model.grid.is_cell_empty(self.model.exit):
                 self.model.grid.place_agent(self, self.model.exit)
         if self.pos is not None:
@@ -186,7 +186,6 @@ class DiseaseAgent(Agent):
         if self.disease >= 1:
             self.sickTime += 1
             self.mutate()
-            if self.model.counter % 1440 > 540 and self.model.counter % 1440 <\
-               1020 and self.pos is not None:
+            if self.pos is not None:
                 self.spread_disease()
             self.cured()
