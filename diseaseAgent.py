@@ -17,7 +17,7 @@ class DiseaseAgent(Agent):
         self.id = unique_id
         self.disease = disease
         self.sociability = sociability
-        self.resistent = []
+        self.resistant = []
         self.cureProb = self.model.initialCureProb
         self.sickTime = 0
         self.talking = 0.1  # probability that an agent stop talking
@@ -158,7 +158,7 @@ class DiseaseAgent(Agent):
         if self.disease > 0:
             if self.model.mutateProb > self.random.random():
                 self.model.maxDisease += 1
-                self.resistent += [self.disease]
+                self.resistant += [self.disease]
                 self.disease = self.model.maxDisease
                 self.sickTime = 0
 
@@ -176,7 +176,7 @@ class DiseaseAgent(Agent):
         if self.sickTime > 10080:
             # Agent is cured
             if self.cureProb > self.random.random():
-                self.resistent += [self.disease]
+                self.resistant += [self.disease]
                 self.disease = 0
                 self.sickTime = 0
                 self.cureProb = self.model.initialCureProb

@@ -16,7 +16,7 @@ def disease_spreader(cellmates, self, distanceFac):
             # ignore agents that are walls
             if not isinstance(other, wall) and not isinstance(self, wall):
                 # check resistance of other agent
-                if self.disease not in other.resistent:
+                if self.disease not in other.resistant:
                     # disease will not be spread if a wall blocks the path
                     if not wall_in_the_way(self, other):
                         # ignore agents on other side of map
@@ -73,7 +73,7 @@ def disease_collector(model):
     total_sick = 0
     disease_dict = {}
     social_dict = {'0': 0, '1': 0, '2': 0}
-    resistent_dict = {'0': 0, '1': 0, '2': 0}
+    resistant_dict = {'0': 0, '1': 0, '2': 0}
     n_mutations = 0
 
     # update disease statistics
@@ -90,7 +90,7 @@ def disease_collector(model):
                 disease_dict[agent.disease] += 1
             else:
                 disease_dict[agent.disease] = 1
-        resistent_dict[str(agent.sociability)] += len(agent.resistent)
+        resistant_dict[str(agent.sociability)] += len(agent.resistant)
 
     # calculate sick percentage per disease
     total = 0
@@ -99,7 +99,7 @@ def disease_collector(model):
         total += disease_dict[mutation]
 
     return (total_sick / model.num_agents, disease_dict, n_mutations,
-            social_dict, resistent_dict)
+            social_dict, resistant_dict)
 
 
 def AStarSearch(start, end, graph):

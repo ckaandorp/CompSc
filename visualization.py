@@ -21,9 +21,9 @@ def disease_graph(models, steps, edu_setting):
     lowS_sick_avg = []
     middleS_sick_avg = []
     highS_sick_avg = []
-    lowS_resistent_avg = []
-    middleS_resistent_avg = []
-    highS_resistent_avg = []
+    lowS_resistant_avg = []
+    middleS_resistant_avg = []
+    highS_resistant_avg = []
     lowS_avg = []
     middleS_avg = []
     highS_avg = []
@@ -43,9 +43,9 @@ def disease_graph(models, steps, edu_setting):
         low_sociability = []
         middle_sociability = []
         high_sociability = []
-        low_resistent = []
-        middle_resistent = []
-        high_resistent = []
+        low_resistant = []
+        middle_resistant = []
+        high_resistant = []
         n_mutations = 0
 
         # collect model data
@@ -53,10 +53,10 @@ def disease_graph(models, steps, edu_setting):
             diseased += [row[0][0]]
             mutation += [row[0][1]]
             sociability = row[0][3]
-            resistent = row[0][4]
-            low_resistent += [resistent['0']]
-            middle_resistent += [resistent['1']]
-            high_resistent += [resistent['2']]
+            resistant = row[0][4]
+            low_resistant += [resistant['0']]
+            middle_resistant += [resistant['1']]
+            high_resistant += [resistant['2']]
             low_sociability += [sociability['0']]
             middle_sociability += [sociability['1']]
             high_sociability += [sociability['2']]
@@ -78,18 +78,18 @@ def disease_graph(models, steps, edu_setting):
         lowS_sick = [x / model.lowS for x in low_sociability]
         middleS_sick = [x / model.middleS for x in middle_sociability]
         highS_sick = [x / model.highS for x in high_sociability]
-        lowS_resistent = [x / model.lowS for x in low_resistent]
-        middleS_resistent = [x / model.middleS for x in middle_resistent]
-        highS_resistent = [x / model.highS for x in high_resistent]
+        lowS_resistant = [x / model.lowS for x in low_resistant]
+        middleS_resistant = [x / model.middleS for x in middle_resistant]
+        highS_resistant = [x / model.highS for x in high_resistant]
 
         # store for averaging
         diseased_avg += [diseased]
         lowS_sick_avg += [lowS_sick]
         middleS_sick_avg += [middleS_sick]
         highS_sick_avg += [highS_sick]
-        lowS_resistent_avg += [lowS_resistent]
-        middleS_resistent_avg += [middleS_resistent]
-        highS_resistent_avg += [highS_resistent]
+        lowS_resistant_avg += [lowS_resistant]
+        middleS_resistant_avg += [middleS_resistant]
+        highS_resistant_avg += [highS_resistant]
         lowS_avg += [model.lowS]
         middleS_avg += [model.middleS]
         highS_avg += [model.highS]
@@ -125,9 +125,9 @@ def disease_graph(models, steps, edu_setting):
     middleS_sick_avg = np.mean(np.array(middleS_sick_avg), axis=0)
     highS_sick_avg = np.mean(np.array(highS_sick_avg), axis=0)
 
-    lowS_resistent_avg = np.mean(np.array(lowS_resistent_avg), axis=0)
-    middleS_resistent_avg = np.mean(np.array(middleS_resistent_avg), axis=0)
-    highS_resistent_avg = np.mean(np.array(highS_resistent_avg), axis=0)
+    lowS_resistant_avg = np.mean(np.array(lowS_resistant_avg), axis=0)
+    middleS_resistant_avg = np.mean(np.array(middleS_resistant_avg), axis=0)
+    highS_resistant_avg = np.mean(np.array(highS_resistant_avg), axis=0)
 
     lowS_avg = np.mean(lowS_avg)
     middleS_avg = np.mean(middleS_avg)
@@ -161,13 +161,13 @@ def disease_graph(models, steps, edu_setting):
     plt.show()
 
     # Plot resistance
-    plt.plot(lowS_resistent_avg, label='Low sociability, total agents: '
+    plt.plot(lowS_resistant_avg, label='Low sociability, total agents: '
              + str(int(lowS_avg)))
-    plt.plot(middleS_resistent_avg, label='Middle sociability, total agents: '
+    plt.plot(middleS_resistant_avg, label='Middle sociability, total agents: '
              + str(int(middleS_avg)))
-    plt.plot(highS_resistent_avg, label='High sociability, total agents: '
+    plt.plot(highS_resistant_avg, label='High sociability, total agents: '
              + str(int(highS_avg)))
-    plt.ylabel("Amount of resistentcy on average per agent")
+    plt.ylabel("Amount of resistantcy on average per agent")
     plt.xlabel("Timesteps")
     plt.title("Resistance agents in " + str(edu_setting) +
               " educational setting")
@@ -180,17 +180,17 @@ def disease_graph(models, steps, edu_setting):
     F.write(" last timestep: \n")
     F.write("The current educational setting is " + str(edu_setting) + "\n\n")
     F.write("Average resistance of agents low sociability \t\t" +
-            str(np.mean(lowS_resistent)) + "\n")
+            str(np.mean(lowS_resistant)) + "\n")
     F.write("Average resistance of agents middle sociability \t" +
-            str(np.mean(middleS_resistent)) + "\n")
+            str(np.mean(middleS_resistant)) + "\n")
     F.write("Average resistance of agents high sociability \t\t" +
-            str(np.mean(highS_resistent)) + "\n\n")
+            str(np.mean(highS_resistant)) + "\n\n")
     F.write("Low sociability versus middle sociability \t" +
-            t_test(lowS_resistent, middleS_resistent) + "\n")
+            t_test(lowS_resistant, middleS_resistant) + "\n")
     F.write("Low sociability versus high sociability \t" +
-            t_test(lowS_resistent, highS_resistent) + "\n")
+            t_test(lowS_resistant, highS_resistant) + "\n")
     F.write("Middle sociability versus high sociability \t" +
-            t_test(highS_resistent, middleS_resistent) + "\n")
+            t_test(highS_resistant, middleS_resistant) + "\n")
     F.write("----------------------------------------------------------------")
     F.write("-----------------------\n\n\n")
 
